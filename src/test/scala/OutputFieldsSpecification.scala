@@ -18,6 +18,6 @@ class OutputFieldsSpecification extends org.scalatest.FunSuite {
       query(queryFile) :~:
       out(outFile)     :~: ∅
     ),
-    optionValues = blastn.defaults
+    optionValues = blastn.defaults update (num_threads(24) :~: ∅)
   )
 }
