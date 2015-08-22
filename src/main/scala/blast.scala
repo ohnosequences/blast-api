@@ -72,6 +72,33 @@ case object api {
     }
   }
 
+  // TODO finish this. We should be able to generate a `Seq[String]` cmd from this.
+  trait AnyBlastExpression {
+
+    type Command <: AnyBlastCommand
+    val command: Command
+    // TODO a more succint bound
+    type OutputRecord <: AnyRecord // { type PropertySet <: AnyPropertySet { type Properties <: AnyTypeSet.Of[AnyOutputField ]}}
+    val outputRecord: OutputRecord
+
+    val optionValues: ValueOf[Command#Options]
+    val argumentValues: ValueOf[Command#Arguments]
+  }
+
+  case class BlastExpression[BC <: AnyBlastCommand, OR <: AnyRecord](
+    val command: BC
+  )(
+    val outputRecord: OR
+  )(
+    val optionValues: ValueOf[BC#Options],
+    val argumentValues: ValueOf[BC#Arguments]
+  )
+  extends AnyBlastExpression {
+
+    type Command = BC
+    type OutputRecord = OR
+  }
+
   /*
     ### BLAST command instances
 
