@@ -22,6 +22,9 @@ case object api {
     val defaults: ValueOf[Options]
     val defaultsAsSeq: Seq[String]
 
+    /* valid output fields for this command */
+    type OutputFields <: AnyPropertySet { type Properties <: AnyTypeSet.Of[AnyOutputField] }
+
     type Raw >: (ValueOf[Arguments], ValueOf[Options]) <: (ValueOf[Arguments], ValueOf[Options])
   }
 
@@ -89,6 +92,10 @@ case object api {
       show_gis    :&:
       ungapped    :&: □
     )
+
+    import ohnosequences.blast.api.outputFields.{qseqid, sseqid}
+    type OutputFields = qseqid :&: sseqid :&: □
+    val outputFields: OutputFields = qseqid :&: sseqid :&: □
 
     val defaults = options(
       num_threads(1)                :~:
@@ -320,6 +327,11 @@ case object api {
     case object JSONSeqalign              extends OutputFormatType(12)
   }
 
+  /*
+    Given a BLAST command, we can choose an output record made out of output fields. Each command specifies through its `OutputFields` command which fields can be used for it.
+
+      The object containing all the output fields contains parsers and serializers for all them.
+  */
   // use the label for parsing the key afterwards
   // TODO add parsing
   sealed trait AnyOutputField extends AnyProperty
@@ -331,10 +343,11 @@ case object api {
   }
 
   /* Inside this object you have all the possible fields that you can specify as output */
-  case object outFields {
+  // TODO move this to a different file
+  case object outputFields {
 
     /* Query Seq-id */
-    case object qseqid    extends OutputField[String]
+    case object qseqid    extends OutputField[String]; type qseqid = qseqid.type
     /* Query GI */
     case object qgi       extends OutputField[String]
     // means Query accesion
@@ -344,7 +357,7 @@ case object api {
     // means Query sequence length
     case object qlen      extends OutputField[Int]
     // means Subject Seq-id
-    case object sseqid    extends OutputField[String]
+    case object sseqid    extends OutputField[String]; type sseqid = sseqid.type
     // means All subject Seq-id(s), separated by a ';'
     case object sallseqid extends OutputField[List[String]]
     // means Subject GI
