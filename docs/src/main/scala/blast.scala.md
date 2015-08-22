@@ -1,3 +1,5 @@
+
+```scala
 package ohnosequences.blast
 
 case object api {
@@ -6,19 +8,28 @@ case object api {
   import ohnosequences.cosas.ops.typeSets.{ CheckForAll, ToList, MapToList }
   import shapeless.poly._
   import java.io.File
+```
 
-  /*
-    This trait models a command part of the `BLAST` suite, like `blastn`, `blastp`, or `makeblastdb`. It is a property, with values of that property being valid command expressions.
-  */
+
+This trait models a command part of the `BLAST` suite, like `blastn`, `blastp`, or `makeblastdb`. It is a property, with values of that property being valid command expressions.
+
+
+```scala
   sealed trait AnyBlastCommand extends AnyProperty {
+```
 
-    /* This label should match the name of the command */
+This label should match the name of the command
+
+```scala
     lazy val label: String = toString
 
     type Arguments  <: AnyRecord { type PropertySet <: AnyPropertySet.withBound[AnyBlastOption] }
     type Options    <: AnyRecord { type PropertySet <: AnyPropertySet.withBound[AnyBlastOption] }
+```
 
-    /* default values for options; they are *optional*, so should have default values. */
+default values for options; they are *optional*, so should have default values.
+
+```scala
     val defaults: ValueOf[Options]
     val defaultsAsSeq: Seq[String]
 
@@ -26,11 +37,17 @@ case object api {
   }
 
   sealed trait AnyBlastOption extends AnyProperty {
+```
 
-    /* The `label` is used for generating the command-line `String` representation of this option. For a BLAST option `-x_yz_abc` name your option here `case object x_yz_abc`. */
+The `label` is used for generating the command-line `String` representation of this option. For a BLAST option `-x_yz_abc` name your option here `case object x_yz_abc`.
+
+```scala
     lazy val label: String = s"-${toString}"
+```
 
-    /* this is used for serializing values to command-line args */
+this is used for serializing values to command-line args
+
+```scala
     val valueToString: Raw => String
   }
   case object AnyBlastOption {
@@ -38,12 +55,15 @@ case object api {
     type is[B <: AnyBlastOption] = B with AnyBlastOption { type Raw = B#Raw }
   }
   abstract class BlastOption[V](val valueToString: V => String) extends AnyBlastOption { type Raw = V }
+```
 
-  /*
-    ### `Seq[String]` Command generation
 
-    for command values we generate a `Seq[String]` which is valid command expression that you can execute (assuming BLAST installed) using `scala.sys.process` or anything similar.
-  */
+### `Seq[String]` Command generation
+
+for command values we generate a `Seq[String]` which is valid command expression that you can execute (assuming BLAST installed) using `scala.sys.process` or anything similar.
+
+
+```scala
   case object optionValueToSeq extends shapeless.Poly1 {
 
     implicit def default[BO <: AnyBlastOption](implicit option: AnyBlastOption.is[BO]) =
@@ -68,12 +88,15 @@ case object api {
       Seq(cmd.label) ++ argsSeqs.toSeq.flatten ++ optsSeqs.toSeq.flatten
     }
   }
+```
 
-  /*
-    ### BLAST command instances
 
-    All the BLAST suite commands, together with their arguments, options and default values.
-  */
+### BLAST command instances
+
+All the BLAST suite commands, together with their arguments, options and default values.
+
+
+```scala
   type blastn = blastn.type
   case object blastn extends AnyBlastCommand {
 
@@ -196,12 +219,15 @@ case object api {
 
     lazy val defaultsAsSeq = (defaults.value mapToList optionValueToSeq).flatten
   }
+```
 
-  /*
-    ### Options
 
-    As the same options are valid for several commands, they are defined independently here.
-  */
+### Options
+
+As the same options are valid for several commands, they are defined independently here.
+
+
+```scala
   case object db    extends BlastOption[File](f => f.getCanonicalPath.toString)
   case object query extends BlastOption[File](f => f.getCanonicalPath.toString)
   case object out   extends BlastOption[File](f => f.getCanonicalPath.toString)
@@ -221,9 +247,13 @@ case object api {
     case object minus extends Strands
     case object plus  extends Strands
   }
-  /*
-    #### `makeblastdb`-specific options
-  */
+```
+
+
+#### `makeblastdb`-specific options
+
+
+```scala
   case object title extends BlastOption[String](x => x)
   case object in extends BlastOption[File](f => f.getCanonicalPath.toString)
 
@@ -243,22 +273,15 @@ case object api {
     case object nucl extends BlastDBType
     case object prot extends BlastDBType
   }
+```
 
 
+### BLAST output
+
+There is a lot that can be specified for BLAST output. See below for output format types and output fields.
 
 
-
-
-
-
-
-
-
-  /*
-    ### BLAST output
-
-    There is a lot that can be specified for BLAST output. See below for output format types and output fields.
-  */
+```scala
   // sealed trait AnyOutputFormat extends AnyBlastOption {
   //
   //   // TODO check it
@@ -293,11 +316,15 @@ case object api {
   //   type OutputRecordFormat = OF
   // }
 
-  /*
-    ### BLAST output formats and fields
+```
 
-    A lot of different outputs, plus the possibility of choosing fields for CSV/TSV output.
-  */
+
+### BLAST output formats and fields
+
+A lot of different outputs, plus the possibility of choosing fields for CSV/TSV output.
+
+
+```scala
   sealed trait AnyOutputFormatType { val code: Int }
   abstract class OutputFormatType(val code: Int) extends AnyOutputFormatType
   case object format {
@@ -332,19 +359,32 @@ case object api {
 
     type Condition[Flds <: AnyOutputField] = C isIn Flds#Commands
   }
+```
 
-  /* Inside this object you have all the possible fields that you can specify as output */
+Inside this object you have all the possible fields that you can specify as output
+
+```scala
   case object outFields {
+```
 
-    /* Auxiliary type for setting the valid commands for an output field. */
+Auxiliary type for setting the valid commands for an output field.
+
+```scala
     trait ForCommands[Cmmnds <: AnyTypeSet.Of[AnyBlastCommand]] extends AnyOutputField {
 
       type Commands = Cmmnds
     }
+```
 
-    /* Query Seq-id */
+Query Seq-id
+
+```scala
     case object qseqid    extends OutputField[String]
-    /* Query GI */
+```
+
+Query GI
+
+```scala
     case object qgi       extends OutputField[String]
     // means Query accesion
     case object qacc      extends OutputField[String]
@@ -480,3 +520,11 @@ case object api {
                             //   ): BlastStatement[Cmd,Opts] = BlastStatement(cmd, opts)
                             // }
 }
+
+```
+
+
+
+
+[test/scala/CommandGeneration.scala]: ../../test/scala/CommandGeneration.scala.md
+[main/scala/blast.scala]: blast.scala.md
