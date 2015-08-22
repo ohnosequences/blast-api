@@ -330,7 +330,7 @@ case object api {
   /*
     Given a BLAST command, we can choose an output record made out of output fields. Each command specifies through its `OutputFields` command which fields can be used for it.
 
-      The object containing all the output fields contains parsers and serializers for all them.
+    The object containing all the output fields contains parsers and serializers for all them.
   */
   // use the label for parsing the key afterwards
   // TODO add parsing
@@ -347,7 +347,12 @@ case object api {
   case object outputFields {
 
     /* Query Seq-id */
-    case object qseqid    extends OutputField[String]; type qseqid = qseqid.type
+    type qseqid = qseqid.type
+    case object qseqid    extends OutputField[String]
+    implicit val qseqidParser: PropertyParser[qseqid,String] =
+      PropertyParser(qseqid, qseqid.label){ s: String => Some(s) }
+    implicit val qseqidSerializer: PropertySerializer[qseqid,String] =
+      PropertySerializer(qseqid, qseqid.label){ v: String => Some(v) }
     /* Query GI */
     case object qgi       extends OutputField[String]
     // means Query accesion
