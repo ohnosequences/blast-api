@@ -10,22 +10,22 @@ case object api {
   /*
     This trait models a command part of the `BLAST` suite, like `blastn`, `blastp`, or `makeblastdb`. It is a property, with values of that property being valid command expressions.
   */
-  sealed trait AnyBlastCommand extends AnyProperty {
+  sealed trait AnyBlastCommand {
 
     /* This label should match the name of the command */
-    lazy val label: String = toString
+    lazy val name: Seq[String] = Seq(toString)
 
     type Arguments  <: AnyRecord { type PropertySet <: AnyPropertySet.withBound[AnyBlastOption] }
     type Options    <: AnyRecord { type PropertySet <: AnyPropertySet.withBound[AnyBlastOption] }
 
     /* default values for options; they are *optional*, so should have default values. */
     val defaults: ValueOf[Options]
-    val defaultsAsSeq: Seq[String]
+    // val defaultsAsSeq: Seq[String]
 
     /* valid output fields for this command */
     type OutputFields <: AnyPropertySet { type Properties <: AnyTypeSet.Of[AnyOutputField] }
 
-    type Raw >: (ValueOf[Arguments], ValueOf[Options]) <: (ValueOf[Arguments], ValueOf[Options])
+    // type Raw >: (ValueOf[Arguments], ValueOf[Options]) <: (ValueOf[Arguments], ValueOf[Options])
   }
 
   sealed trait AnyBlastOption extends AnyProperty {
@@ -34,13 +34,18 @@ case object api {
     lazy val label: String = s"-${toString}"
 
     /* this is used for serializing values to command-line args */
-    val valueToString: Raw => String
+    val valueToString: Raw => Seq[String]
   }
   case object AnyBlastOption {
 
     type is[B <: AnyBlastOption] = B with AnyBlastOption { type Raw = B#Raw }
   }
-  abstract class BlastOption[V](val valueToString: V => String) extends AnyBlastOption { type Raw = V }
+  abstract class BlastOption[V](val v: V => String) extends AnyBlastOption {
+
+    type Raw = V
+
+    val valueToString = { x: V => Seq(v(x)) }
+  }
 
   /*
     ### `Seq[String]` Command generation
@@ -50,26 +55,7 @@ case object api {
   case object optionValueToSeq extends shapeless.Poly1 {
 
     implicit def default[BO <: AnyBlastOption](implicit option: AnyBlastOption.is[BO]) =
-      at[ValueOf[BO]]{ v: ValueOf[BO] => (Seq[String]( option.label, option.valueToString(v.value) )).filterNot(_.isEmpty) }
-  }
-
-  implicit def blastCommandValueOps[B <: AnyBlastCommand](cmdValueOf: ValueOf[B]): BlastCommandValueOps[B] =
-    BlastCommandValueOps(cmdValueOf.value)
-  case class BlastCommandValueOps[B <: AnyBlastCommand](val cmdValue: B#Raw) extends AnyVal {
-
-    def cmd(implicit
-      cmd: B,
-      mapArgs: (optionValueToSeq.type MapToList B#Arguments#Raw) { type O = Seq[String] },
-      mapOpts: (optionValueToSeq.type MapToList B#Options#Raw) { type O = Seq[String] }
-    ): Seq[String] = {
-
-      val (argsSeqs, optsSeqs): (List[Seq[String]], List[Seq[String]]) = (
-        (cmdValue._1.value: B#Arguments#Raw) mapToList optionValueToSeq,
-        (cmdValue._2.value: B#Options#Raw) mapToList optionValueToSeq
-      )
-
-      Seq(cmd.label) ++ argsSeqs.toSeq.flatten ++ optsSeqs.toSeq.flatten
-    }
+      at[ValueOf[BO]]{ v: ValueOf[BO] => Seq(option.label) ++ option.valueToString(v.value).filterNot(_.isEmpty) }
   }
 
   // TODO finish this. We should be able to generate a `Seq[String]` cmd from this.
@@ -100,6 +86,25 @@ case object api {
 
     type Command = BC
     type OutputRecord = OR
+  }
+
+  implicit def blastExpressionOps[Expr <: AnyBlastExpression](expr: Expr): BlastExpressionOps[Expr] =
+    BlastExpressionOps(expr)
+  case class BlastExpressionOps[Expr <: AnyBlastExpression](val expr: Expr) extends AnyVal {
+
+    def cmd(implicit
+      mapArgs: (optionValueToSeq.type MapToList Expr#Command#Arguments#Raw) { type O = Seq[String] },
+      mapOpts: (optionValueToSeq.type MapToList Expr#Command#Options#Raw) { type O = Seq[String] }
+    ): Seq[String] = {
+
+      val (argsSeqs, optsSeqs): (List[Seq[String]], List[Seq[String]]) = (
+        (expr.argumentValues.value: Expr#Command#Arguments#Raw) mapToList optionValueToSeq,
+        (expr.optionValues.value: Expr#Command#Options#Raw)     mapToList optionValueToSeq
+      )
+
+      // TODO output record to Seq
+      expr.command.name ++ argsSeqs.toSeq.flatten ++ optsSeqs.toSeq.flatten
+    }
   }
 
   /*

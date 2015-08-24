@@ -20,4 +20,6 @@ class OutputFieldsSpecification extends org.scalatest.FunSuite {
     ),
     optionValues = blastn.defaults update (num_threads(24) :~: ∅)
   )
+
+  
 }
