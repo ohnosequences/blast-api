@@ -352,6 +352,17 @@ case object api {
   // TODO move this to a different file
   case object outputFields {
 
+    // parsers
+    val intParser: String => Option[Int] = str => {
+      import scala.util.control.Exception._
+      catching(classOf[NumberFormatException]) opt str.toInt
+    }
+
+    val doubleFromScientificNotation: String => Option[Double] = str => {
+      import java.math.BigDecimal
+      Some( (new BigDecimal(str)).doubleValue )
+    }
+
     /* Query Seq-id */
     type qseqid = qseqid.type
     case object qseqid    extends OutputField[String]
@@ -359,16 +370,27 @@ case object api {
       PropertyParser(qseqid, qseqid.label){ s: String => Some(s) }
     implicit val qseqidSerializer: PropertySerializer[qseqid,String] =
       PropertySerializer(qseqid, qseqid.label){ v: String => Some(v) }
+
     /* Query GI */
     case object qgi       extends OutputField[String]
     // means Query accesion
     case object qacc      extends OutputField[String]
     // means Query accesion.version
     case object qaccver   extends OutputField[Int]
-    // means Query sequence length
+
+    /* Query sequence length */
+    type qlen = qlen.type
     case object qlen      extends OutputField[Int]
+    implicit val qlenParser: PropertyParser[qlen,String] =
+      PropertyParser(qlen, qlen.label){ intParser }
+    implicit val qlenSerializer: PropertySerializer[qlen,String] =
+      PropertySerializer(qlen, qlen.label){ v => Some(v.toString) }
+
     // means Subject Seq-id
-    case object sseqid    extends OutputField[String]; type sseqid = sseqid.type
+    type sseqid = sseqid.type
+    case object sseqid    extends OutputField[String]
+
+
     // means All subject Seq-id(s), separated by a ';'
     case object sallseqid extends OutputField[List[String]]
     // means Subject GI
@@ -395,8 +417,14 @@ case object api {
     case object qseq      extends OutputField[String]
     // means Aligned part of subject sequence
     case object sseq      extends OutputField[String]
+
     // means Expect value
     case object evalue    extends OutputField[Double]
+    implicit val evalueParser: PropertyParser[evalue.type,String] =
+      PropertyParser(evalue, evalue.label){ doubleFromScientificNotation }
+    implicit val evalueSerializer: PropertySerializer[evalue.type,String] =
+      PropertySerializer(evalue, evalue.label){ v => Some(v.toString) }
+
     // means Bit score
     case object bitscore  extends OutputField[Long]
     // means Raw score
@@ -414,9 +442,9 @@ case object api {
     // means Total number of gaps
     case object gaps      extends OutputField[Int]
     // means Query frame
-    case object qframe      extends OutputField[String]
+    case object qframe    extends OutputField[String]
     // means Subject frame
-    case object sframe      extends OutputField[String]
+    case object sframe    extends OutputField[String]
 
     // TODO sort these out
     // means Number of identical matches
