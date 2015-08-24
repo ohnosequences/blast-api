@@ -48,6 +48,62 @@ case object api {
   }
 
   /*
+    ### BLAST output formats and fields
+
+    A lot of different outputs, plus the possibility of choosing fields for CSV/TSV output.
+  */
+  trait AnyBlastOutputRecord extends AnyRecord {
+
+    type PropertySet <: AnyPropertySet { type Properties <: AnyTypeSet.Of[AnyOutputField] }
+  }
+  abstract class BlastOutputRecord[
+    PS <: AnyPropertySet { type Properties <: AnyTypeSet.Of[AnyOutputField] }
+  ](val propertySet: PS) extends AnyBlastOutputRecord {
+
+    type PropertySet = PS
+    lazy val label = toString
+  }
+
+  // TODO move to cosas, actually to `AnyType`
+  case object propertyLabel extends shapeless.Poly1 {
+
+    implicit def default[P <: AnyProperty] = at[P]{ p: P => p.label }
+  }
+  implicit def blastOutputRecordOps[OR <: AnyBlastOutputRecord](outputRec: OR): BlastOutputRecordOps[OR] =
+    BlastOutputRecordOps(outputRec)
+  case class BlastOutputRecordOps[OR <: AnyBlastOutputRecord](val outputRec: OR) extends AnyVal {
+
+    def toSeq(implicit
+      canMap: (propertyLabel.type MapToList OR#Properties) { type O = String }
+    ): Seq[String] = {
+
+      val fields: String = ((outputRec.properties: OR#Properties) mapToList propertyLabel).mkString(" ")
+
+      // '10' is the code for csv output
+      Seq("-outfmt") :+ s"'10 ${fields}'"
+    }
+  }
+  /*
+    Given a BLAST command, we can choose an output record made out of output fields. Each command specifies through its `OutputFields` command which fields can be used for it; this is checked when you construct a `BlastExpression`.
+
+    The object containing all the output fields contains parsers and serializers for all them.
+  */
+  // use the label for parsing the key afterwards
+  // TODO add parsing
+  sealed trait AnyOutputField extends AnyProperty
+
+  trait OutputField[V] extends AnyOutputField {
+
+    type Raw = V
+    lazy val label: String = toString
+  }
+
+  trait ValidOutputRecordFor[BC <: AnyBlastCommand] extends TypePredicate[AnyOutputField] {
+
+    type Condition[OF <: AnyOutputField] = OF isIn BC#OutputFields#Properties
+  }
+
+  /*
     ### `Seq[String]` Command generation
 
     for command values we generate a `Seq[String]` which is valid command expression that you can execute (assuming BLAST installed) using `scala.sys.process` or anything similar.
@@ -58,7 +114,6 @@ case object api {
       at[ValueOf[BO]]{ v: ValueOf[BO] => Seq(option.label) ++ option.valueToString(v.value).filterNot(_.isEmpty) }
   }
 
-  // TODO finish this. We should be able to generate a `Seq[String]` cmd from this.
   trait AnyBlastExpression {
 
     type Command <: AnyBlastCommand
@@ -69,6 +124,8 @@ case object api {
 
     val optionValues: ValueOf[Command#Options]
     val argumentValues: ValueOf[Command#Arguments]
+
+    val validRecord: OutputRecord#Properties CheckForAll ValidOutputRecordFor[Command]
   }
 
   case class BlastExpression[
@@ -81,6 +138,8 @@ case object api {
   )(
     val optionValues: ValueOf[BC#Options],
     val argumentValues: ValueOf[BC#Arguments]
+  )(implicit
+    val validRecord: OR#Properties CheckForAll ValidOutputRecordFor[BC]
   )
   extends AnyBlastExpression {
 
@@ -287,56 +346,6 @@ case object api {
   case object BlastDBType {
     case object nucl extends BlastDBType
     case object prot extends BlastDBType
-  }
-
-  /*
-    ### BLAST output formats and fields
-
-    A lot of different outputs, plus the possibility of choosing fields for CSV/TSV output.
-  */
-  trait AnyBlastOutputRecord extends AnyRecord {
-
-    type PropertySet <: AnyPropertySet { type Properties <: AnyTypeSet.Of[AnyOutputField] }
-  }
-  abstract class BlastOutputRecord[
-    PS <: AnyPropertySet { type Properties <: AnyTypeSet.Of[AnyOutputField] }
-  ](val propertySet: PS) extends AnyBlastOutputRecord {
-
-    type PropertySet = PS
-    lazy val label = toString
-  }
-  // TODO move to cosas, actually to `AnyType`
-  case object propertyLabel extends shapeless.Poly1 {
-
-    implicit def default[P <: AnyProperty] = at[P]{ p: P => p.label }
-  }
-  implicit def blastOutputRecordOps[OR <: AnyBlastOutputRecord](outputRec: OR): BlastOutputRecordOps[OR] =
-    BlastOutputRecordOps(outputRec)
-  case class BlastOutputRecordOps[OR <: AnyBlastOutputRecord](val outputRec: OR) extends AnyVal {
-
-    def toSeq(implicit
-      canMap: (propertyLabel.type MapToList OR#Properties) { type O = String }
-    ): Seq[String] = {
-
-      val fields: String = ((outputRec.properties: OR#Properties) mapToList propertyLabel).mkString(" ")
-
-      // '10' is the code for csv output
-      Seq("-outfmt") :+ s"'10 ${fields}'"
-    }
-  }
-  /*
-    Given a BLAST command, we can choose an output record made out of output fields. Each command specifies through its `OutputFields` command which fields can be used for it; this is checked when you construct a `BlastExpression`.
-
-    The object containing all the output fields contains parsers and serializers for all them.
-  */
-  // use the label for parsing the key afterwards
-  // TODO add parsing
-  sealed trait AnyOutputField extends AnyProperty
-
-  trait OutputField[V] extends AnyOutputField {
-
-    type Raw = V
-    lazy val label: String = toString
   }
 
   /* Inside this object you have all the possible fields that you can specify as output */
