@@ -64,7 +64,7 @@ case object api {
     type Command <: AnyBlastCommand
     val command: Command
     // TODO a more succint bound
-    type OutputRecord <: AnyRecord { type PropertySet <: AnyPropertySet { type Properties <: AnyTypeSet.Of[AnyOutputField ]}}
+    type OutputRecord <: AnyBlastOutputRecord
     val outputRecord: OutputRecord
 
     val optionValues: ValueOf[Command#Options]
@@ -73,7 +73,7 @@ case object api {
 
   case class BlastExpression[
     BC <: AnyBlastCommand,
-    OR <: AnyRecord { type PropertySet <: AnyPropertySet { type Properties <: AnyTypeSet.Of[AnyOutputField ]}}
+    OR <: AnyBlastOutputRecord
   ](
     val command: BC
   )(
@@ -94,7 +94,8 @@ case object api {
 
     def cmd(implicit
       mapArgs: (optionValueToSeq.type MapToList Expr#Command#Arguments#Raw) { type O = Seq[String] },
-      mapOpts: (optionValueToSeq.type MapToList Expr#Command#Options#Raw) { type O = Seq[String] }
+      mapOpts: (optionValueToSeq.type MapToList Expr#Command#Options#Raw) { type O = Seq[String] },
+      mapOutputProps: (propertyLabel.type MapToList Expr#OutputRecord#Properties) { type O = String }
     ): Seq[String] = {
 
       val (argsSeqs, optsSeqs): (List[Seq[String]], List[Seq[String]]) = (
@@ -102,8 +103,10 @@ case object api {
         (expr.optionValues.value: Expr#Command#Options#Raw)     mapToList optionValueToSeq
       )
 
-      // TODO output record to Seq
-      expr.command.name ++ argsSeqs.toSeq.flatten ++ optsSeqs.toSeq.flatten
+      expr.command.name ++
+      argsSeqs.toSeq.flatten ++
+      optsSeqs.toSeq.flatten ++
+      BlastOutputRecordOps(expr.outputRecord: Expr#OutputRecord).toSeq
     }
   }
 
@@ -362,6 +365,35 @@ case object api {
     case object JSONSeqalign              extends OutputFormatType(12)
   }
 
+  case object propertyLabel extends shapeless.Poly1 {
+
+    implicit def default[P <: AnyProperty] = at[P]{ p: P => p.label }
+  }
+
+  implicit def blastOutputRecordOps[OR <: AnyBlastOutputRecord](outputRec: OR): BlastOutputRecordOps[OR] =
+    BlastOutputRecordOps(outputRec)
+  case class BlastOutputRecordOps[OR <: AnyBlastOutputRecord](val outputRec: OR) extends AnyVal {
+
+    def toSeq(implicit
+      canMap: (propertyLabel.type MapToList OR#Properties) { type O = String }
+    ): Seq[String] = {
+
+      val fields: String = ((outputRec.properties: OR#Properties) mapToList propertyLabel).mkString(" ")
+
+      Seq("-outfmt") :+ s"'10 ${fields}'"
+    }
+  }
+  trait AnyBlastOutputRecord extends AnyRecord {
+
+    type PropertySet <: AnyPropertySet { type Properties <: AnyTypeSet.Of[AnyOutputField] }
+  }
+  abstract class BlastOutputRecord[
+    PS <: AnyPropertySet { type Properties <: AnyTypeSet.Of[AnyOutputField] }
+  ](val propertySet: PS) extends AnyBlastOutputRecord {
+
+    type PropertySet = PS
+    lazy val label = toString
+  }
   /*
     Given a BLAST command, we can choose an output record made out of output fields. Each command specifies through its `OutputFields` command which fields can be used for it.
 
