@@ -78,14 +78,17 @@ case object api {
     type Command <: AnyBlastCommand
     val command: Command
     // TODO a more succint bound
-    type OutputRecord <: AnyRecord // { type PropertySet <: AnyPropertySet { type Properties <: AnyTypeSet.Of[AnyOutputField ]}}
+    type OutputRecord <: AnyRecord { type PropertySet <: AnyPropertySet { type Properties <: AnyTypeSet.Of[AnyOutputField ]}}
     val outputRecord: OutputRecord
 
     val optionValues: ValueOf[Command#Options]
     val argumentValues: ValueOf[Command#Arguments]
   }
 
-  case class BlastExpression[BC <: AnyBlastCommand, OR <: AnyRecord](
+  case class BlastExpression[
+    BC <: AnyBlastCommand,
+    OR <: AnyRecord { type PropertySet <: AnyPropertySet { type Properties <: AnyTypeSet.Of[AnyOutputField ]}}
+  ](
     val command: BC
   )(
     val outputRecord: OR
