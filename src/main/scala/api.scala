@@ -106,7 +106,7 @@ case object api {
       expr.command.name ++
       argsSeqs.toSeq.flatten ++
       optsSeqs.toSeq.flatten ++
-      BlastOutputRecordOps(expr.outputRecord: Expr#OutputRecord).toSeq
+      (expr.outputRecord: Expr#OutputRecord).toSeq
     }
   }
 
@@ -289,100 +289,11 @@ case object api {
     case object prot extends BlastDBType
   }
 
-
-
-
-
-
-
-
-
-
-
-  /*
-    ### BLAST output
-
-    There is a lot that can be specified for BLAST output. See below for output format types and output fields.
-  */
-  // sealed trait AnyOutputFormat extends AnyBlastOption {
-  //
-  //   // TODO check it
-  //   type Commands = AllBlasts
-  //   val commands = allBlasts
-  //
-  //   type OutputFormatType <: AnyOutputFormatType
-  //   val outputFormatType: OutputFormatType
-  //
-  //   type OutputRecordFormat <: AnyTypeSet.Of[AnyOutputField]
-  //   val outputRecordFormat: OutputRecordFormat
-  //
-  //   implicit val outputRecordFormatList: ToListOf[OutputRecordFormat, AnyOutputField]
-  //
-  //   lazy val outputRecordFormatStr = (outputRecordFormat.toListOf[AnyOutputField] map {_.toString}).mkString(" ")
-  //   lazy val code: Int = outputFormatType.code
-  //   lazy val toSeq: Seq[String] = Seq("-outfmt", s"'${code} ${outputRecordFormatStr}'")
-  // }
-  // case class outfmt[
-  //   T <: AnyOutputFormatType,
-  //   OF <: AnyTypeSet.Of[AnyOutputField]
-  // ]
-  // (
-  //   val outputFormatType: T,
-  //   val outputRecordFormat: OF
-  // )(implicit
-  //   val outputRecordFormatList: ToListOf[OF, AnyOutputField]
-  // )
-  // extends AnyOutputFormat {
-  //
-  //   type OutputFormatType = T
-  //   type OutputRecordFormat = OF
-  // }
-
   /*
     ### BLAST output formats and fields
 
     A lot of different outputs, plus the possibility of choosing fields for CSV/TSV output.
   */
-  sealed trait AnyOutputFormatType {
-
-    val code: Int
-  }
-  abstract class OutputFormatType(val code: Int) extends AnyOutputFormatType
-  case object format {
-
-    case object pairwise                  extends OutputFormatType(0)
-    case object queryAnchoredShowIds      extends OutputFormatType(1)
-    case object queryAnchoredNoIds        extends OutputFormatType(2)
-    case object flatQueryAnchoredShowIds  extends OutputFormatType(3)
-    case object flatQueryAnchoredNoIds    extends OutputFormatType(4)
-    case object XML                       extends OutputFormatType(5)
-    case object TSV                       extends OutputFormatType(6)
-    case object TSVWithComments           extends OutputFormatType(7)
-    case object TextASN1                  extends OutputFormatType(8)
-    case object BinaryASN1                extends OutputFormatType(9)
-    case object CSV                       extends OutputFormatType(10)
-    case object BLASTArchiveASN1          extends OutputFormatType(11)
-    case object JSONSeqalign              extends OutputFormatType(12)
-  }
-
-  case object propertyLabel extends shapeless.Poly1 {
-
-    implicit def default[P <: AnyProperty] = at[P]{ p: P => p.label }
-  }
-
-  implicit def blastOutputRecordOps[OR <: AnyBlastOutputRecord](outputRec: OR): BlastOutputRecordOps[OR] =
-    BlastOutputRecordOps(outputRec)
-  case class BlastOutputRecordOps[OR <: AnyBlastOutputRecord](val outputRec: OR) extends AnyVal {
-
-    def toSeq(implicit
-      canMap: (propertyLabel.type MapToList OR#Properties) { type O = String }
-    ): Seq[String] = {
-
-      val fields: String = ((outputRec.properties: OR#Properties) mapToList propertyLabel).mkString(" ")
-
-      Seq("-outfmt") :+ s"'10 ${fields}'"
-    }
-  }
   trait AnyBlastOutputRecord extends AnyRecord {
 
     type PropertySet <: AnyPropertySet { type Properties <: AnyTypeSet.Of[AnyOutputField] }
@@ -394,8 +305,27 @@ case object api {
     type PropertySet = PS
     lazy val label = toString
   }
+  // TODO move to cosas, actually to `AnyType`
+  case object propertyLabel extends shapeless.Poly1 {
+
+    implicit def default[P <: AnyProperty] = at[P]{ p: P => p.label }
+  }
+  implicit def blastOutputRecordOps[OR <: AnyBlastOutputRecord](outputRec: OR): BlastOutputRecordOps[OR] =
+    BlastOutputRecordOps(outputRec)
+  case class BlastOutputRecordOps[OR <: AnyBlastOutputRecord](val outputRec: OR) extends AnyVal {
+
+    def toSeq(implicit
+      canMap: (propertyLabel.type MapToList OR#Properties) { type O = String }
+    ): Seq[String] = {
+
+      val fields: String = ((outputRec.properties: OR#Properties) mapToList propertyLabel).mkString(" ")
+
+      // '10' is the code for csv output
+      Seq("-outfmt") :+ s"'10 ${fields}'"
+    }
+  }
   /*
-    Given a BLAST command, we can choose an output record made out of output fields. Each command specifies through its `OutputFields` command which fields can be used for it.
+    Given a BLAST command, we can choose an output record made out of output fields. Each command specifies through its `OutputFields` command which fields can be used for it; this is checked when you construct a `BlastExpression`.
 
     The object containing all the output fields contains parsers and serializers for all them.
   */
