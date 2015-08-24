@@ -389,6 +389,10 @@ case object api {
     // means Subject Seq-id
     type sseqid = sseqid.type
     case object sseqid    extends OutputField[String]
+    implicit val sseqidParser: PropertyParser[sseqid,String] =
+      PropertyParser(sseqid, sseqid.label){ s: String => Some(s) }
+    implicit val sseqidSerializer: PropertySerializer[sseqid,String] =
+      PropertySerializer(sseqid, sseqid.label){ v: String => Some(v) }
 
 
     // means All subject Seq-id(s), separated by a ';'

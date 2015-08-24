@@ -2,7 +2,7 @@ package ohnosequences.blast.test
 
 import ohnosequences.blast.api._
 import ohnosequences.blast.api._, outputFields._
-import ohnosequences.cosas._, typeSets._, properties._, records._
+import ohnosequences.cosas._, types._, typeSets._, properties._, records._
 import java.io.File
 
 case object csvUtils {
@@ -21,8 +21,8 @@ class ParseBlastOutput extends org.scalatest.FunSuite {
 
   case object outRecord extends BlastOutputRecord(
     qseqid  :&:
-    qlen    :&: □
-    // sseqid  :&:
+    qlen    :&:
+    sseqid  :&: □
     // sgi     :&:
     // sacc    :&:
     // slen    :&:
@@ -41,7 +41,17 @@ class ParseBlastOutput extends org.scalatest.FunSuite {
 
     rows(blastOutput)(outRecord.properties mapToList propertyLabel) map { row => outRecord parseFrom row } foreach {
 
-      optRec => println(optRec)
+      optRec => optRec match {
+
+        case Right(b: ValueOf[outRecord.type]) =>  {
+
+          println("correctly parsed record:")
+          // TODO map poly
+          println(s"${b get qseqid show} :~: ${b get qlen show} :~: ${b get sseqid show}")
+        }
+
+        case Left(v) => s"oh, an error: ${v}"
+      }
     }
   }
 }
