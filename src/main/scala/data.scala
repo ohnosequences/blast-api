@@ -7,8 +7,6 @@ case object data {
 
   trait AnyBlastOutputType extends AnyDataType {
 
-    // get the output record from here
-    // could be unconvenient in that you need a concrete expression here
     type OutputRecord <: AnyBlastOutputRecord
     val outputRecord: OutputRecord
   }
