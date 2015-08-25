@@ -64,20 +64,15 @@ case object api {
     lazy val label = toString
   }
 
-  // TODO move to cosas, actually to `AnyType`
-  case object propertyLabel extends shapeless.Poly1 {
-
-    implicit def default[P <: AnyProperty] = at[P]{ p: P => p.label }
-  }
   implicit def blastOutputRecordOps[OR <: AnyBlastOutputRecord](outputRec: OR): BlastOutputRecordOps[OR] =
     BlastOutputRecordOps(outputRec)
   case class BlastOutputRecordOps[OR <: AnyBlastOutputRecord](val outputRec: OR) extends AnyVal {
 
     def toSeq(implicit
-      canMap: (propertyLabel.type MapToList OR#Properties) { type O = String }
+      canMap: (typeLabel.type MapToList OR#Properties) { type O = String }
     ): Seq[String] = {
 
-      val fields: String = ((outputRec.properties: OR#Properties) mapToList propertyLabel).mkString(" ")
+      val fields: String = ((outputRec.properties: OR#Properties) mapToList typeLabel).mkString(" ")
 
       // '10' is the code for csv output
       Seq("-outfmt") :+ s"'10 ${fields}'"
@@ -154,7 +149,7 @@ case object api {
     def cmd(implicit
       mapArgs: (optionValueToSeq.type MapToList Expr#Command#Arguments#Raw) { type O = Seq[String] },
       mapOpts: (optionValueToSeq.type MapToList Expr#Command#Options#Raw) { type O = Seq[String] },
-      mapOutputProps: (propertyLabel.type MapToList Expr#OutputRecord#Properties) { type O = String }
+      mapOutputProps: (typeLabel.type MapToList Expr#OutputRecord#Properties) { type O = String }
     ): Seq[String] = {
 
       val (argsSeqs, optsSeqs): (List[Seq[String]], List[Seq[String]]) = (

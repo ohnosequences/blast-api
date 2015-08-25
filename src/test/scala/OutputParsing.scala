@@ -39,7 +39,7 @@ class ParseBlastOutput extends org.scalatest.FunSuite {
 
     val blastOutput: File = new File("blastn.test3.out.txt")
 
-    rows(blastOutput)(outRecord.properties mapToList propertyLabel) map { row => outRecord parseFrom row } foreach {
+    rows(blastOutput)(outRecord.properties mapToList typeLabel) map { row => outRecord parseFrom row } foreach {
 
       optRec => optRec match {
 
