@@ -23,13 +23,13 @@ case object data {
     type BlastExpression <: AnyBlastExpression { type OutputRecord = DataType#OutputRecord }
     val blastExpression: BlastExpression
   }
-
   abstract class BlastOutput[
     BOT <: AnyBlastOutputType,
     BE <: AnyBlastExpression { type OutputRecord = BOT#OutputRecord }
   ](
     val dataType: BOT,
-    val blastExpression: BE
+    val blastExpression: BE,
+    val label: String
   ) extends AnyBlastOutput {
 
     type DataType = BOT
