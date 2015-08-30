@@ -12,7 +12,9 @@ class OutputFieldsSpecification extends org.scalatest.FunSuite {
 
   case object outRec extends BlastOutputRecord(qseqid :&: sseqid :&: □)
 
-  val stmt = BlastExpression(blastn)(outRec)(
+  case object exprType extends BlastExpressionType(blastn)(outRec)
+
+  val stmt = BlastExpression(exprType)(
     argumentValues = blastn.arguments(
       db(dbFile)       :~:
       query(queryFile) :~:
@@ -28,7 +30,7 @@ class OutputFieldsSpecification extends org.scalatest.FunSuite {
 
   test("can specify output data") {
 
-    case object outputType extends BlastOutputType[BlastExpression[blastn, outRec.type]](outRec, "test.output")
+    case object outputType extends BlastOutputType(exprType, "test.output")
 
     case object blastnOutput extends BlastOutput(outputType, "sample-blastn-output")
 
