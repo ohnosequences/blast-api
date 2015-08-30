@@ -7,16 +7,14 @@ case object data {
 
   trait AnyBlastOutputType extends AnyDataType {
 
-    // this is OK to be known statically
-    type OutputRecord = BlastExpression#OutputRecord
-    val outputRecord: OutputRecord
-
-    type BlastExpression <: AnyBlastExpression
+    type BlastExpressionType <: AnyBlastExpressionType
+    val blastExpressionType: BlastExpressionType
   }
-  abstract class BlastOutputType[BE <: AnyBlastExpression](val outputRecord: BE#OutputRecord, val label: String)
+
+  abstract class BlastOutputType[BET <: AnyBlastExpressionType](val blastExpressionType: BET, val label: String)
   extends AnyBlastOutputType {
 
-    type BlastExpression = BE
+    type BlastExpressionType = BET
   }
 
   trait AnyBlastOutput extends AnyData {

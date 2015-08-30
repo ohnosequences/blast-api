@@ -109,7 +109,7 @@ case object api {
       at[ValueOf[BO]]{ v: ValueOf[BO] => Seq(option.label) ++ option.valueToString(v.value).filterNot(_.isEmpty) }
   }
 
-  trait AnyBlastExpression {
+  trait AnyBlastExpressionType {
 
     type Command <: AnyBlastCommand
     val command: Command
@@ -117,29 +117,45 @@ case object api {
     type OutputRecord <: AnyBlastOutputRecord
     val outputRecord: OutputRecord
 
-    val optionValues: ValueOf[Command#Options]
-    val argumentValues: ValueOf[Command#Arguments]
-
     val validRecord: OutputRecord#Properties CheckForAll ValidOutputRecordFor[Command]
   }
 
-  case class BlastExpression[
+  abstract class BlastExpressionType[
     BC <: AnyBlastCommand,
     OR <: AnyBlastOutputRecord
   ](
     val command: BC
   )(
     val outputRecord: OR
-  )(
-    val optionValues: ValueOf[BC#Options],
-    val argumentValues: ValueOf[BC#Arguments]
   )(implicit
     val validRecord: OR#Properties CheckForAll ValidOutputRecordFor[BC]
   )
-  extends AnyBlastExpression {
+  extends AnyBlastExpressionType {
 
     type Command = BC
     type OutputRecord = OR
+  }
+
+  trait AnyBlastExpression {
+
+    type Tpe <: AnyBlastExpressionType
+    val tpe: Tpe
+
+    val optionValues: ValueOf[Tpe#Command#Options]
+    val argumentValues: ValueOf[Tpe#Command#Arguments]
+  }
+
+  case class BlastExpression[
+    T <: AnyBlastExpressionType
+  ](
+    val tpe: T
+  )(
+    val optionValues: ValueOf[T#Command#Options],
+    val argumentValues: ValueOf[T#Command#Arguments]
+  )
+  extends AnyBlastExpression {
+
+    type Tpe = T
   }
 
   implicit def blastExpressionOps[Expr <: AnyBlastExpression](expr: Expr): BlastExpressionOps[Expr] =
@@ -147,20 +163,20 @@ case object api {
   case class BlastExpressionOps[Expr <: AnyBlastExpression](val expr: Expr) extends AnyVal {
 
     def cmd(implicit
-      mapArgs: (optionValueToSeq.type MapToList Expr#Command#Arguments#Raw) { type O = Seq[String] },
-      mapOpts: (optionValueToSeq.type MapToList Expr#Command#Options#Raw) { type O = Seq[String] },
-      mapOutputProps: (typeLabel.type MapToList Expr#OutputRecord#Properties) { type O = String }
+      mapArgs: (optionValueToSeq.type MapToList Expr#Tpe#Command#Arguments#Raw) { type O = Seq[String] },
+      mapOpts: (optionValueToSeq.type MapToList Expr#Tpe#Command#Options#Raw) { type O = Seq[String] },
+      mapOutputProps: (typeLabel.type MapToList Expr#Tpe#OutputRecord#Properties) { type O = String }
     ): Seq[String] = {
 
       val (argsSeqs, optsSeqs): (List[Seq[String]], List[Seq[String]]) = (
-        (expr.argumentValues.value: Expr#Command#Arguments#Raw) mapToList optionValueToSeq,
-        (expr.optionValues.value: Expr#Command#Options#Raw)     mapToList optionValueToSeq
+        (expr.argumentValues.value: Expr#Tpe#Command#Arguments#Raw) mapToList optionValueToSeq,
+        (expr.optionValues.value: Expr#Tpe#Command#Options#Raw)     mapToList optionValueToSeq
       )
 
-      expr.command.name ++
+      expr.tpe.command.name ++
       argsSeqs.toSeq.flatten ++
       optsSeqs.toSeq.flatten ++
-      (expr.outputRecord: Expr#OutputRecord).toSeq
+      (expr.tpe.outputRecord: Expr#Tpe#OutputRecord).toSeq
     }
   }
 
