@@ -201,14 +201,37 @@ case object api {
       ungapped    :&: □
     )
 
-    import ohnosequences.blast.api.outputFields.{qseqid, sseqid}
-    type OutputFields = qseqid :&: sseqid :&: □
-    val outputFields: OutputFields = qseqid :&: sseqid :&: □
+    import ohnosequences.blast.api.outputFields._
+    type OutputFields =
+      qseqid      :&:
+      sseqid      :&:
+      sgi         :&:
+      qstart      :&:
+      qend        :&:
+      sstart      :&:
+      send        :&:
+      qlen        :&:
+      slen        :&:
+      bitscore    :&:
+      score       :&: □
+
+    val outputFields: OutputFields =
+      qseqid      :&:
+      sseqid      :&:
+      sgi         :&:
+      qstart      :&:
+      qend        :&:
+      sstart      :&:
+      send        :&:
+      qlen        :&:
+      slen        :&:
+      bitscore    :&:
+      score       :&: □
 
     val defaults = options(
       num_threads(1)                :~:
       task(blastn)                  :~:
-      evalue(10)                    :~:
+      api.evalue(10)                :~:
       strand(Strands.both)          :~:
       word_size(4)                  :~:
       show_gis(false)               :~:
@@ -409,7 +432,13 @@ case object api {
     // means All subject Seq-id(s), separated by a ';'
     case object sallseqid extends OutputField[List[String]]
     // means Subject GI
+    type sgi = sgi.type
     case object sgi       extends OutputField[String]
+    implicit val sgiParser: PropertyParser[sgi,String] =
+      PropertyParser(sgi, sgi.label){ s: String => Some(s) }
+    implicit val sgiSerializer: PropertySerializer[sgi,String] =
+      PropertySerializer(sgi, sgi.label){ v: String => Some(v) }
+
     // means All subject GIs
     case object sallgi    extends OutputField[List[String]]
     // means Subject accession
@@ -418,19 +447,33 @@ case object api {
     case object saccver   extends OutputField[String]
     // means All subject accessions
     case object sallacc   extends OutputField[String]
+
     // means Subject sequence length
+    type slen = slen.type
     case object slen      extends OutputField[Int]
+
     // means Start of alignment in query
+    type qstart = qstart.type
     case object qstart    extends OutputField[Int]
+
     // means End of alignment in query
+    type qend = qend.type
     case object qend      extends OutputField[Int]
+
     // means Start of alignment in subject
+    type sstart = sstart.type
     case object sstart    extends OutputField[Int]
+
     // means End of alignment in subject
+    type send = send.type
     case object send      extends OutputField[Int]
+
     // means Aligned part of query sequence
+    type qseq = qseq.type
     case object qseq      extends OutputField[String]
+
     // means Aligned part of subject sequence
+    type sseq = sseq.type
     case object sseq      extends OutputField[String]
 
     // means Expect value
@@ -441,9 +484,13 @@ case object api {
       PropertySerializer(evalue, evalue.label){ v => Some(v.toString) }
 
     // means Bit score
+    type bitscore = bitscore.type
     case object bitscore  extends OutputField[Long]
+
     // means Raw score
+    type score = score.type
     case object score     extends OutputField[Long]
+
     // means Alignment length
     case object length    extends OutputField[Int]
     // means Percentage of identical matches
