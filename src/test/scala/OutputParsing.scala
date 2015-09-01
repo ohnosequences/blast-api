@@ -22,15 +22,15 @@ class ParseBlastOutput extends org.scalatest.FunSuite {
   case object outRecord extends BlastOutputRecord(
     qseqid  :&:
     qlen    :&:
-    sseqid  :&: □
-    // sgi     :&:
-    // sacc    :&:
-    // slen    :&:
-    // qstart  :&:
-    // qend    :&:
-    // sstart  :&:
-    // send    :&:
-    // outputFields.evalue :&: □
+    sseqid  :&:
+    sgi     :&:
+    sacc    :&:
+    slen    :&:
+    qstart  :&:
+    qend    :&:
+    sstart  :&:
+    send    :&:
+    outputFields.evalue :&: □
   )
 
   test("can parse BLAST output") {
@@ -47,10 +47,10 @@ class ParseBlastOutput extends org.scalatest.FunSuite {
 
           println("correctly parsed record:")
           // TODO map poly
-          println(s"${b get qseqid show} :~: ${b get qlen show} :~: ${b get sseqid show}")
+          println( b.value mapToHList denotationValue )
         }
 
-        case Left(v) => s"oh, an error: ${v}"
+        case Left(v) => println{ s"oh, an error: ${v}" }
       }
     }
   }

@@ -392,9 +392,15 @@ case object api {
       catching(classOf[NumberFormatException]) opt str.toInt
     }
 
+    val longParser: String => Option[Long] = str => {
+      import scala.util.control.Exception._
+      catching(classOf[NumberFormatException]) opt str.toLong
+    }
+
     val doubleFromScientificNotation: String => Option[Double] = str => {
       import java.math.BigDecimal
-      Some( (new BigDecimal(str)).doubleValue )
+
+      Some( (new BigDecimal( str.replace("e", "E") )).doubleValue )
     }
 
     /* Query Seq-id */
@@ -431,6 +437,7 @@ case object api {
 
     // means All subject Seq-id(s), separated by a ';'
     case object sallseqid extends OutputField[List[String]]
+
     // means Subject GI
     type sgi = sgi.type
     case object sgi       extends OutputField[String]
@@ -448,25 +455,46 @@ case object api {
     // means All subject accessions
     case object sallacc   extends OutputField[String]
 
-    // means Subject sequence length
+    /* Subject sequence length */
     type slen = slen.type
     case object slen      extends OutputField[Int]
+    implicit val slenParser: PropertyParser[slen,String] =
+      PropertyParser(slen, slen.label){ intParser }
+    implicit val slenSerializer: PropertySerializer[slen,String] =
+      PropertySerializer(slen, slen.label){ v => Some(v.toString) }
+
 
     // means Start of alignment in query
     type qstart = qstart.type
     case object qstart    extends OutputField[Int]
+    implicit val qstartParser: PropertyParser[qstart,String] =
+      PropertyParser(qstart, qstart.label){ intParser }
+    implicit val qstartSerializer: PropertySerializer[qstart,String] =
+      PropertySerializer(qstart, qstart.label){ v => Some(v.toString) }
 
     // means End of alignment in query
     type qend = qend.type
     case object qend      extends OutputField[Int]
+    implicit val qendParser: PropertyParser[qend,String] =
+      PropertyParser(qend, qend.label){ intParser }
+    implicit val qendSerializer: PropertySerializer[qend,String] =
+      PropertySerializer(qend, qend.label){ v => Some(v.toString) }
 
     // means Start of alignment in subject
     type sstart = sstart.type
     case object sstart    extends OutputField[Int]
+    implicit val sstartParser: PropertyParser[sstart,String] =
+      PropertyParser(sstart, sstart.label){ intParser }
+    implicit val sstartSerializer: PropertySerializer[sstart,String] =
+      PropertySerializer(sstart, sstart.label){ v => Some(v.toString) }
 
     // means End of alignment in subject
     type send = send.type
     case object send      extends OutputField[Int]
+    implicit val sendParser: PropertyParser[send,String] =
+      PropertyParser(send, send.label){ intParser }
+    implicit val sendSerializer: PropertySerializer[send,String] =
+      PropertySerializer(send, send.label){ v => Some(v.toString) }
 
     // means Aligned part of query sequence
     type qseq = qseq.type
@@ -478,6 +506,7 @@ case object api {
 
     // means Expect value
     case object evalue    extends OutputField[Double]
+    // TODO this does not seem to work as expected
     implicit val evalueParser: PropertyParser[evalue.type,String] =
       PropertyParser(evalue, evalue.label){ doubleFromScientificNotation }
     implicit val evalueSerializer: PropertySerializer[evalue.type,String] =
@@ -486,10 +515,18 @@ case object api {
     // means Bit score
     type bitscore = bitscore.type
     case object bitscore  extends OutputField[Long]
+    implicit val bitscoreParser: PropertyParser[bitscore,String] =
+      PropertyParser(bitscore, bitscore.label){ longParser }
+    implicit val bitscoreSerializer: PropertySerializer[bitscore,String] =
+      PropertySerializer(bitscore, bitscore.label){ v => Some(v.toString) }
 
     // means Raw score
     type score = score.type
     case object score     extends OutputField[Long]
+    implicit val scoreParser: PropertyParser[score,String] =
+      PropertyParser(score, score.label){ longParser }
+    implicit val scoreSerializer: PropertySerializer[score,String] =
+      PropertySerializer(score, score.label){ v => Some(v.toString) }
 
     // means Alignment length
     case object length    extends OutputField[Int]
