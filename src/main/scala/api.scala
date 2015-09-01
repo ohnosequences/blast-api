@@ -399,7 +399,7 @@ case object api {
 
     val doubleFromScientificNotation: String => Option[Double] = str => {
       import java.math.BigDecimal
-
+      // funny blast output
       Some( (new BigDecimal( str.replace("e", "E") )).doubleValue )
     }
 
@@ -426,7 +426,7 @@ case object api {
     implicit val qlenSerializer: PropertySerializer[qlen,String] =
       PropertySerializer(qlen, qlen.label){ v => Some(v.toString) }
 
-    // means Subject Seq-id
+    /* Subject Seq-id */
     type sseqid = sseqid.type
     case object sseqid    extends OutputField[String]
     implicit val sseqidParser: PropertyParser[sseqid,String] =
@@ -438,7 +438,7 @@ case object api {
     // means All subject Seq-id(s), separated by a ';'
     case object sallseqid extends OutputField[List[String]]
 
-    // means Subject GI
+    /* Subject GI */
     type sgi = sgi.type
     case object sgi       extends OutputField[String]
     implicit val sgiParser: PropertyParser[sgi,String] =
@@ -464,7 +464,7 @@ case object api {
       PropertySerializer(slen, slen.label){ v => Some(v.toString) }
 
 
-    // means Start of alignment in query
+    /* Start of alignment in query */
     type qstart = qstart.type
     case object qstart    extends OutputField[Int]
     implicit val qstartParser: PropertyParser[qstart,String] =
@@ -472,7 +472,7 @@ case object api {
     implicit val qstartSerializer: PropertySerializer[qstart,String] =
       PropertySerializer(qstart, qstart.label){ v => Some(v.toString) }
 
-    // means End of alignment in query
+    /* End of alignment in query */
     type qend = qend.type
     case object qend      extends OutputField[Int]
     implicit val qendParser: PropertyParser[qend,String] =
@@ -480,7 +480,7 @@ case object api {
     implicit val qendSerializer: PropertySerializer[qend,String] =
       PropertySerializer(qend, qend.label){ v => Some(v.toString) }
 
-    // means Start of alignment in subject
+    /* Start of alignment in subject */
     type sstart = sstart.type
     case object sstart    extends OutputField[Int]
     implicit val sstartParser: PropertyParser[sstart,String] =
@@ -488,7 +488,7 @@ case object api {
     implicit val sstartSerializer: PropertySerializer[sstart,String] =
       PropertySerializer(sstart, sstart.label){ v => Some(v.toString) }
 
-    // means End of alignment in subject
+    /* End of alignment in subject */
     type send = send.type
     case object send      extends OutputField[Int]
     implicit val sendParser: PropertyParser[send,String] =
