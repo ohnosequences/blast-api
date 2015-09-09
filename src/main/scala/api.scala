@@ -195,6 +195,7 @@ case object api {
       num_threads :&:
       task        :&:
       evalue      :&:
+      max_target_seqs :&:
       strand      :&:
       word_size   :&:
       show_gis    :&:
@@ -232,6 +233,7 @@ case object api {
       num_threads(1)                :~:
       task(blastn)                  :~:
       api.evalue(10)                :~:
+      max_target_seqs(100)          :~:
       strand(Strands.both)          :~:
       word_size(4)                  :~:
       show_gis(false)               :~:
