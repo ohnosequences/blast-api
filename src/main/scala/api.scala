@@ -72,10 +72,10 @@ case object api {
       canMap: (typeLabel.type MapToList OR#Properties) { type O = String }
     ): Seq[String] = {
 
-      val fields: String = ((outputRec.properties: OR#Properties) mapToList typeLabel).mkString(" ")
+      val fields: Seq[String] = (outputRec.properties: OR#Properties) mapToList typeLabel
 
       // '10' is the code for csv output
-      Seq("-outfmt") :+ s"'10 ${fields}'"
+      Seq("-outfmt") :+ s"""10 ${fields.mkString(" ")}"""
     }
   }
   /*
