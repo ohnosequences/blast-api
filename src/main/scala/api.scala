@@ -59,10 +59,12 @@ case object api {
     // should be provided implicitly:
     val mapProps: (typeLabel.type MapToList PropertySet#Properties) { type O = String }
 
+    def headers: Seq[String] = mapProps(propertySet.properties)
+
     def toSeq: Seq[String] = {
-      val fields: String = mapProps(propertySet.properties).mkString(" ")
       // '10' is the code for csv output
-      Seq("-outfmt") :+ s"10 ${fields}"
+      val outfmt: Seq[String] = "10" +: headers
+      Seq("-outfmt", outfmt.mkString(" "))
     }
   }
   abstract class BlastOutputRecord[
