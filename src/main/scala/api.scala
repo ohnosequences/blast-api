@@ -67,7 +67,7 @@ case object api {
       Seq("-outfmt", outfmt.mkString(" "))
     }
   }
-  abstract class BlastOutputRecord[
+  class BlastOutputRecord[
     PS <: AnyPropertySet { type Properties <: AnyTypeSet.Of[AnyOutputField] }
   ](val propertySet: PS
   )(implicit
@@ -122,7 +122,7 @@ case object api {
     val validRecord: OutputRecord#Properties CheckForAll ValidOutputRecordFor[Command]
   }
 
-  abstract class BlastExpressionType[
+  class BlastExpressionType[
     BC <: AnyBlastCommand,
     OR <: AnyBlastOutputRecord
   ](val command: BC
