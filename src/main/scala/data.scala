@@ -1,6 +1,6 @@
 package ohnosequences.blast
 
-import ohnosequences.datasets._, dataSets._
+import ohnosequences.datasets._
 import api._
 
 case object data {
