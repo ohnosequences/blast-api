@@ -25,7 +25,7 @@ class OutputFieldsSpecification extends org.scalatest.FunSuite {
 
   test("can build commands") {
 
-    println(stmt.cmd)
+    println(stmt.toSeq)
   }
 
   test("can specify output data") {
