@@ -1,0 +1,1 @@
+This is a release based on the stable version of datasets (0.2.0-M2) and cosas (0.7.1), before breaking changes.
