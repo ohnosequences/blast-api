@@ -55,29 +55,30 @@ case object api {
   trait AnyBlastOutputRecord extends AnyRecord {
 
     type PropertySet <: AnyPropertySet { type Properties <: AnyTypeSet.Of[AnyOutputField] }
+
+    // should be provided implicitly:
+    val mapProps: (typeLabel.type MapToList PropertySet#Properties) { type O = String }
+
+    def headers: Seq[String] = mapProps(propertySet.properties)
+
+    def toSeq: Seq[String] = {
+      // '10' is the code for csv output
+      val outfmt: Seq[String] = "10" +: headers
+      Seq("-outfmt", outfmt.mkString(" "))
+    }
   }
-  abstract class BlastOutputRecord[
+  class BlastOutputRecord[
     PS <: AnyPropertySet { type Properties <: AnyTypeSet.Of[AnyOutputField] }
-  ](val propertySet: PS) extends AnyBlastOutputRecord {
+  ](val propertySet: PS
+  )(implicit
+    val mapProps: (typeLabel.type MapToList PS#Properties) { type O = String }
+  ) extends AnyBlastOutputRecord {
 
     type PropertySet = PS
     lazy val label = toString
   }
 
-  implicit def blastOutputRecordOps[OR <: AnyBlastOutputRecord](outputRec: OR): BlastOutputRecordOps[OR] =
-    BlastOutputRecordOps(outputRec)
-  case class BlastOutputRecordOps[OR <: AnyBlastOutputRecord](val outputRec: OR) extends AnyVal {
 
-    def toSeq(implicit
-      canMap: (typeLabel.type MapToList OR#Properties) { type O = String }
-    ): Seq[String] = {
-
-      val fields: Seq[String] = (outputRec.properties: OR#Properties) mapToList typeLabel
-
-      // '10' is the code for csv output
-      Seq("-outfmt") :+ s"""10 ${fields.mkString(" ")}"""
-    }
-  }
   /*
     Given a BLAST command, we can choose an output record made out of output fields. Each command specifies through its `OutputFields` command which fields can be used for it; this is checked when you construct a `BlastExpression`.
 
@@ -112,25 +113,23 @@ case object api {
   trait AnyBlastExpressionType {
 
     type Command <: AnyBlastCommand
-    val command: Command
+    val  command: Command
     // TODO a more succint bound
     type OutputRecord <: AnyBlastOutputRecord
-    val outputRecord: OutputRecord
+    val  outputRecord: OutputRecord
 
+    // should be provided implicitly:
     val validRecord: OutputRecord#Properties CheckForAll ValidOutputRecordFor[Command]
   }
 
-  abstract class BlastExpressionType[
+  class BlastExpressionType[
     BC <: AnyBlastCommand,
     OR <: AnyBlastOutputRecord
-  ](
-    val command: BC
-  )(
-    val outputRecord: OR
+  ](val command: BC
+  )(val outputRecord: OR
   )(implicit
     val validRecord: OR#Properties CheckForAll ValidOutputRecordFor[BC]
-  )
-  extends AnyBlastExpressionType {
+  ) extends AnyBlastExpressionType {
 
     type Command = BC
     type OutputRecord = OR
@@ -139,46 +138,36 @@ case object api {
   trait AnyBlastExpression {
 
     type Tpe <: AnyBlastExpressionType
-    val tpe: Tpe
+    val  tpe: Tpe
 
     val optionValues: ValueOf[Tpe#Command#Options]
     val argumentValues: ValueOf[Tpe#Command#Arguments]
+
+    // should be provided implicitly:
+    val mapArgs: (optionValueToSeq.type MapToList Tpe#Command#Arguments#Raw) { type O = Seq[String] }
+    val mapOpts: (optionValueToSeq.type MapToList Tpe#Command#Options#Raw) { type O = Seq[String] }
+
+    def toSeq: Seq[String] = {
+      tpe.command.name ++
+      mapArgs(argumentValues.value).flatten ++
+      mapOpts(optionValues.value).flatten ++
+      tpe.outputRecord.toSeq
+    }
   }
 
   case class BlastExpression[
     T <: AnyBlastExpressionType
-  ](
-    val tpe: T
-  )(
-    val optionValues: ValueOf[T#Command#Options],
+  ](val tpe: T
+  )(val optionValues: ValueOf[T#Command#Options],
     val argumentValues: ValueOf[T#Command#Arguments]
-  )
-  extends AnyBlastExpression {
+  )(implicit
+    val mapArgs: (optionValueToSeq.type MapToList T#Command#Arguments#Raw) { type O = Seq[String] },
+    val mapOpts: (optionValueToSeq.type MapToList T#Command#Options#Raw) { type O = Seq[String] }
+  ) extends AnyBlastExpression {
 
     type Tpe = T
   }
 
-  implicit def blastExpressionOps[Expr <: AnyBlastExpression](expr: Expr): BlastExpressionOps[Expr] =
-    BlastExpressionOps(expr)
-  case class BlastExpressionOps[Expr <: AnyBlastExpression](val expr: Expr) extends AnyVal {
-
-    def cmd(implicit
-      mapArgs: (optionValueToSeq.type MapToList Expr#Tpe#Command#Arguments#Raw) { type O = Seq[String] },
-      mapOpts: (optionValueToSeq.type MapToList Expr#Tpe#Command#Options#Raw) { type O = Seq[String] },
-      mapOutputProps: (typeLabel.type MapToList Expr#Tpe#OutputRecord#Properties) { type O = String }
-    ): Seq[String] = {
-
-      val (argsSeqs, optsSeqs): (List[Seq[String]], List[Seq[String]]) = (
-        (expr.argumentValues.value: Expr#Tpe#Command#Arguments#Raw) mapToList optionValueToSeq,
-        (expr.optionValues.value: Expr#Tpe#Command#Options#Raw)     mapToList optionValueToSeq
-      )
-
-      expr.tpe.command.name ++
-      argsSeqs.toSeq.flatten ++
-      optsSeqs.toSeq.flatten ++
-      (expr.tpe.outputRecord: Expr#Tpe#OutputRecord).toSeq
-    }
-  }
 
   /*
     ### BLAST command instances

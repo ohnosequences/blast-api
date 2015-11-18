@@ -11,7 +11,7 @@ case object data {
     val blastExpressionType: BlastExpressionType
   }
 
-  abstract class BlastOutputType[BET <: AnyBlastExpressionType](val blastExpressionType: BET, val label: String)
+  class BlastOutputType[BET <: AnyBlastExpressionType](val blastExpressionType: BET, val label: String)
   extends AnyBlastOutputType {
 
     type BlastExpressionType = BET
@@ -23,7 +23,7 @@ case object data {
     val dataType: DataType
   }
 
-  abstract class BlastOutput[BOT <: AnyBlastOutputType](val dataType: BOT, val label: String) extends AnyBlastOutput {
+  class BlastOutput[BOT <: AnyBlastOutputType](val dataType: BOT, val label: String) extends AnyBlastOutput {
 
     type DataType = BOT
   }
