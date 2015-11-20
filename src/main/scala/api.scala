@@ -25,7 +25,7 @@ case object api {
     // val defaultsAsSeq: Seq[String]
 
     /* valid output fields for this command */
-    type OutputFields <: AnyRecordType { type Keys <: AnyProductType { type Bound <: AnyOutputField } }
+    type OutputFields <: AnyBlastOutputRecord
 
     // type Raw >: (ValueOf[Arguments], ValueOf[Options]) <: (ValueOf[Arguments], ValueOf[Options])
   }
@@ -59,16 +59,6 @@ case object api {
   //   type PropertySet <: AnyPropertySet { type Properties <: AnyTypeSet.Of[AnyOutputField] }
   // }
 
-  type AnyBlastOutputRecord = AnyRecordType { type Keys <: AnyProductType { type Bound <: AnyOutputField } }
-
-  abstract class BlastOutputRecord[
-    PS <: AnyProductType { type Bound <: AnyOutputField }
-  ](val propertySet: PS)(implicit proof: noDuplicates isTrueOn PS#Types) extends RecordType[PS](propertySet) {
-
-    // TODO check if needed
-    // lazy val label = toString
-  }
-
   implicit def blastOutputRecordOps[OR <: AnyBlastOutputRecord](outputRec: OR): BlastOutputRecordOps[OR] =
     BlastOutputRecordOps(outputRec)
   case class BlastOutputRecordOps[OR <: AnyBlastOutputRecord](val outputRec: OR) extends AnyVal {
@@ -98,15 +88,18 @@ case object api {
     lazy val label: String = toString
   }
 
+  type AnyBlastOutputRecord = AnyRecordType { type Keys <: AnyProductType { type Bound <: AnyOutputField } }
+  type BlastOutputRecord[OFs <: AnyProductType { type Bound <: AnyOutputField }] = RecordType[OFs]
+
   class ValidOutputRecordFor[BC <: AnyBlastCommand] extends PredicateOver[AnyOutputField]
-  
+
   case object ValidOutputRecordFor {
 
     implicit def trueIfOneOutputFields[
       BC <: AnyBlastCommand,
       O <: AnyOutputField
     ](implicit
-      proof: O isOneOf BC#OutputFields#Keys#Types#Union
+      proof: O isOneOf BC#OutputFields#Keys#Types#Types
     ): ValidOutputRecordFor[BC] isTrueOn O =
       App1 { _: O => True }
   }
@@ -129,7 +122,7 @@ case object api {
 
     type Command <: AnyBlastCommand
     val command: Command
-    // TODO a more succint bound
+
     type OutputRecord <: AnyBlastOutputRecord
     val outputRecord: OutputRecord
 
@@ -189,13 +182,13 @@ case object api {
   case class BlastExpressionOps[Expr <: AnyBlastExpression](val expr: Expr) extends AnyVal {
 
     def cmd[
-      MA <: AnyKList.Of[Seq[String]],
-      MO <: AnyKList.Of[Seq[String]],
-      MOP <: AnyKList.Of[String]
+      MA <: AnyKList.withBound[Seq[String]],
+      MO <: AnyKList.withBound[Seq[String]],
+      MOP <: AnyKList.withBound[String]
     ](implicit
-      mapArgs: AnyApp1At[mapKList[optionValueToSeq.type], Expr#ArgumentVals] { type Y = MA },
-      mapOpts: AnyApp1At[mapKList[optionValueToSeq.type], Expr#OptionVals] { type Y = MO },
-      mapOutputProps: AnyApp1At[mapKList[typeLabel.type], Expr#Tpe#OutputRecord#Keys#Types] { type Y = MOP }
+      mapArgs: AnyApp2At[MapKListOf[optionValueToSeq.type,Seq[String]], optionValueToSeq.type, Expr#ArgumentVals] { type Y = MA },
+      mapOpts: AnyApp2At[MapKListOf[optionValueToSeq.type,Seq[String]], optionValueToSeq.type, Expr#OptionVals] { type Y = MO },
+      mapOutputProps: AnyApp2At[MapKListOf[typeLabel.type,String], typeLabel.type, Expr#Tpe#OutputRecord#Keys#Types] { type Y = MOP }
       // mapOutputProps: (typeLabel.type MapToList Expr#Tpe#OutputRecord#Properties) { type O = String }
     ): Seq[String] = {
 
@@ -250,8 +243,16 @@ case object api {
       score       :×: In[AnyOutputField]
     )
 
-    // type OptionVals = Options#Raw
-    val defaults = options(
+    type OptionsVals = (num_threads.type      := num_threads.Raw)      ::
+                      (task.type             := task.Raw)             ::
+                      (api.evalue.type       := api.evalue.Raw)       ::
+                      (max_target_seqs.type  := max_target_seqs.Raw)  ::
+                      (strand.type           := strand.Raw)           ::
+                      (word_size.type        := word_size.Raw)        ::
+                      (show_gis.type         := show_gis.Raw)         ::
+                      (ungapped.type         := ungapped.Raw)         :: *[AnyDenotation]
+
+    val defaults: Options := OptionsVals = options := (
       num_threads(1)                ::
       task(blastn)                  ::
       api.evalue(10: Double)        ::
