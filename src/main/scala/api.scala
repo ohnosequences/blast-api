@@ -73,8 +73,8 @@ case object api {
     BlastOutputRecordOps(outputRec)
   case class BlastOutputRecordOps[OR <: AnyBlastOutputRecord](val outputRec: OR) extends AnyVal {
 
-    def toSeq[MO <: AnyKList.Of[String]](implicit
-      canMap: AnyApp1At[mapKList[typeLabel.type], OR#Keys#Types] { type Y = MO }
+    def toSeq[MO <: AnyKList.withBound[String]](implicit
+      canMap: AnyApp2At[MapKListOf[typeLabel.type,String], typeLabel.type, OR#Keys#Types] { type Y = MO }
     ): Seq[String] = {
 
       val fields: Seq[String] = (outputRec.keys.types: OR#Keys#Types) map typeLabel asList
@@ -98,9 +98,17 @@ case object api {
     lazy val label: String = toString
   }
 
-  trait ValidOutputRecordFor[BC <: AnyBlastCommand] extends TypePredicate[AnyOutputField] {
+  class ValidOutputRecordFor[BC <: AnyBlastCommand] extends PredicateOver[AnyOutputField]
+  
+  case object ValidOutputRecordFor {
 
-    // type Condition[OF <: AnyOutputField] = OF isOneOf BC#OutputFields#Keys#Types#Union
+    implicit def trueIfOneOutputFields[
+      BC <: AnyBlastCommand,
+      O <: AnyOutputField
+    ](implicit
+      proof: O isOneOf BC#OutputFields#Keys#Types#Union
+    ): ValidOutputRecordFor[BC] isTrueOn O =
+      App1 { _: O => True }
   }
 
   /*
