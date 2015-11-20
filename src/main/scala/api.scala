@@ -13,8 +13,6 @@ case object api {
     /* This label should match the name of the command */
     lazy val name: Seq[String] = Seq(toString)
 
-    // AnyRecordType { type Keys <: AnyProductType { type Bound <: AnyFlashOption } }
-
     type Arguments  <: AnyRecordType { type Keys <: AnyProductType { type Bound <: AnyBlastOption } }
     type Options    <: AnyRecordType { type Keys <: AnyProductType { type Bound <: AnyBlastOption } }
 
@@ -22,12 +20,10 @@ case object api {
     type OptionsVals <: Options#Raw
     /* default values for options; they are *optional*, so should have default values. */
     val defaults: Options := OptionsVals
-    // val defaultsAsSeq: Seq[String]
+    val defaultsAsSeq: Seq[String]
 
     /* valid output fields for this command */
     type OutputFields <: AnyBlastOutputRecord
-
-    // type Raw >: (ValueOf[Arguments], ValueOf[Options]) <: (ValueOf[Arguments], ValueOf[Options])
   }
 
   sealed trait AnyBlastOption extends AnyType {
@@ -283,6 +279,7 @@ case object api {
     case object options extends RecordType(num_threads :×: In[AnyBlastOption])
     type Options = options.type
 
+    type OptionsVals = (num_threads.type := num_threads.Raw) :: *[AnyDenotation]
     val defaults = options(
       num_threads(1) :: *[AnyDenotation]
     )
@@ -304,6 +301,7 @@ case object api {
     case object options extends RecordType(num_threads :×: In[AnyBlastOption])
     type Options = options.type
 
+    type OptionsVals = (num_threads.type := num_threads.Raw) :: *[AnyDenotation]
     val defaults = options(
       num_threads(1) :: *[AnyDenotation]
     )
@@ -324,6 +322,7 @@ case object api {
     case object options extends RecordType(num_threads :×: In[AnyBlastOption])
     type Options = options.type
 
+    type OptionsVals = (num_threads.type := num_threads.Raw) :: *[AnyDenotation]
     val defaults = options := num_threads(1) :: *[AnyDenotation]
 
     lazy val defaultsAsSeq = (defaults.value map optionValueToSeq asList).flatten
@@ -342,6 +341,7 @@ case object api {
     case object options extends RecordType(num_threads :×: In[AnyBlastOption])
     type Options = options.type
 
+    type OptionsVals = (num_threads.type := num_threads.Raw) :: *[AnyDenotation]
     val defaults = options := num_threads(1) :: *[AnyDenotation]
 
     lazy val defaultsAsSeq = (defaults.value map optionValueToSeq asList).flatten
@@ -355,6 +355,7 @@ case object api {
     case object options extends RecordType(title :×: In[AnyBlastOption])
     type Options = options.type
 
+    type OptionsVals = (title.type := title.Raw) :: *[AnyDenotation]
     val defaults = options := title("") :: *[AnyDenotation]
 
     lazy val defaultsAsSeq = (defaults.value map optionValueToSeq asList).flatten
