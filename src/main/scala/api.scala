@@ -63,7 +63,7 @@ case object api {
 
   abstract class BlastOutputRecord[
     PS <: AnyProductType { type Bound <: AnyOutputField }
-  ](val propertySet: PS)(implicit uh: NoDuplicates[PS#Types]) extends RecordType[PS](propertySet) {
+  ](val propertySet: PS)(implicit proof: noDuplicates isTrueOn PS#Types) extends RecordType[PS](propertySet) {
 
     // TODO check if needed
     // lazy val label = toString
