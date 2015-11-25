@@ -10,7 +10,7 @@ class OutputFieldsSpecification extends org.scalatest.FunSuite {
   val queryFile = new File("/tmp/query")
   val outFile   = new File("/tmp/blastout")
 
-  case object outRec extends BlastOutputRecord(qseqid :×: sseqid :×: In[AnyOutputField])
+  case object outRec extends BlastOutputRecord(qseqid :×: sseqid :×: |[AnyOutputField])
 
   case object exprType extends BlastExpressionType(blastn)(outRec)
 

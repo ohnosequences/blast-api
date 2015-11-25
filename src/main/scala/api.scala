@@ -60,7 +60,7 @@ case object api {
   case class BlastOutputRecordOps[OR <: AnyBlastOutputRecord](val outputRec: OR) extends AnyVal {
 
     def toSeq[MO <: AnyKList.withBound[String]](implicit
-      canMap: AnyApp2At[MapKListOf[typeLabel.type,String], typeLabel.type, OR#Keys#Types] { type Y = MO }
+      canMap: AnyApp2At[mapKList[typeLabel.type,String], typeLabel.type, OR#Keys#Types] { type Y = MO }
     ): Seq[String] = {
 
       val fields: Seq[String] = (outputRec.keys.types: OR#Keys#Types) map typeLabel asList
@@ -97,7 +97,7 @@ case object api {
     ](implicit
       proof: O isOneOf BC#OutputFields#Keys#Types#Types
     ): ValidOutputRecordFor[BC] isTrueOn O =
-      App1 { _: O => True }
+      App1 { _: O => () }
   }
 
   /*
@@ -182,9 +182,9 @@ case object api {
       MO <: AnyKList.withBound[Seq[String]],
       MOP <: AnyKList.withBound[String]
     ](implicit
-      mapArgs: AnyApp2At[MapKListOf[optionValueToSeq.type,Seq[String]], optionValueToSeq.type, Expr#ArgumentVals] { type Y = MA },
-      mapOpts: AnyApp2At[MapKListOf[optionValueToSeq.type,Seq[String]], optionValueToSeq.type, Expr#OptionVals] { type Y = MO },
-      mapOutputProps: AnyApp2At[MapKListOf[typeLabel.type,String], typeLabel.type, Expr#Tpe#OutputRecord#Keys#Types] { type Y = MOP }
+      mapArgs: AnyApp2At[mapKList[optionValueToSeq.type,Seq[String]], optionValueToSeq.type, Expr#ArgumentVals] { type Y = MA },
+      mapOpts: AnyApp2At[mapKList[optionValueToSeq.type,Seq[String]], optionValueToSeq.type, Expr#OptionVals] { type Y = MO },
+      mapOutputProps: AnyApp2At[mapKList[typeLabel.type,String], typeLabel.type, Expr#Tpe#OutputRecord#Keys#Types] { type Y = MOP }
       // mapOutputProps: (typeLabel.type MapToList Expr#Tpe#OutputRecord#Properties) { type O = String }
     ): Seq[String] = {
 
@@ -209,7 +209,7 @@ case object api {
   case object blastn extends AnyBlastCommand {
 
     type Arguments = arguments.type
-    case object arguments extends RecordType(db :×: query :×: out :×: In[AnyBlastOption])
+    case object arguments extends RecordType(db :×: query :×: out :×: |[AnyBlastOption])
     type Options = options.type
     case object options extends RecordType(
       num_threads :×:
@@ -219,7 +219,7 @@ case object api {
       strand      :×:
       word_size   :×:
       show_gis    :×:
-      ungapped    :×: In[AnyBlastOption]
+      ungapped    :×: |[AnyBlastOption]
     )
 
     import ohnosequences.blast.api.outputFields._
@@ -236,7 +236,7 @@ case object api {
       qlen        :×:
       slen        :×:
       bitscore    :×:
-      score       :×: In[AnyOutputField]
+      score       :×: |[AnyOutputField]
     )
 
     type OptionsVals = (num_threads.type      := num_threads.Raw)      ::
@@ -274,9 +274,9 @@ case object api {
   type blastp = blastp.type
   case object blastp extends AnyBlastCommand {
 
-    case object arguments extends RecordType(db :×: query :×: out :×: In[AnyBlastOption])
+    case object arguments extends RecordType(db :×: query :×: out :×: |[AnyBlastOption])
     type Arguments = arguments.type
-    case object options extends RecordType(num_threads :×: In[AnyBlastOption])
+    case object options extends RecordType(num_threads :×: |[AnyBlastOption])
     type Options = options.type
 
     type OptionsVals = (num_threads.type := num_threads.Raw) :: *[AnyDenotation]
@@ -296,9 +296,9 @@ case object api {
   type blastx   = blastx.type
   case object blastx extends AnyBlastCommand {
 
-    case object arguments extends RecordType(db :×: query :×: out :×: In[AnyBlastOption])
+    case object arguments extends RecordType(db :×: query :×: out :×: |[AnyBlastOption])
     type Arguments = arguments.type
-    case object options extends RecordType(num_threads :×: In[AnyBlastOption])
+    case object options extends RecordType(num_threads :×: |[AnyBlastOption])
     type Options = options.type
 
     type OptionsVals = (num_threads.type := num_threads.Raw) :: *[AnyDenotation]
@@ -317,9 +317,9 @@ case object api {
   type tblastn = tblastn.type
   case object tblastn extends AnyBlastCommand {
 
-    case object arguments extends RecordType(db :×: query :×: out :×: In[AnyBlastOption])
+    case object arguments extends RecordType(db :×: query :×: out :×: |[AnyBlastOption])
     type Arguments = arguments.type
-    case object options extends RecordType(num_threads :×: In[AnyBlastOption])
+    case object options extends RecordType(num_threads :×: |[AnyBlastOption])
     type Options = options.type
 
     type OptionsVals = (num_threads.type := num_threads.Raw) :: *[AnyDenotation]
@@ -336,9 +336,9 @@ case object api {
   type tblastx = tblastx.type
   case object tblastx extends AnyBlastCommand {
 
-    case object arguments extends RecordType(db :×: query :×: out :×: In[AnyBlastOption])
+    case object arguments extends RecordType(db :×: query :×: out :×: |[AnyBlastOption])
     type Arguments = arguments.type
-    case object options extends RecordType(num_threads :×: In[AnyBlastOption])
+    case object options extends RecordType(num_threads :×: |[AnyBlastOption])
     type Options = options.type
 
     type OptionsVals = (num_threads.type := num_threads.Raw) :: *[AnyDenotation]
@@ -350,9 +350,9 @@ case object api {
   type makeblastdb = makeblastdb.type
   case object makeblastdb extends AnyBlastCommand {
 
-    case object arguments extends RecordType(in :×: input_type :×: dbtype :×: In[AnyBlastOption])
+    case object arguments extends RecordType(in :×: input_type :×: dbtype :×: |[AnyBlastOption])
     type Arguments = arguments.type
-    case object options extends RecordType(title :×: In[AnyBlastOption])
+    case object options extends RecordType(title :×: |[AnyBlastOption])
     type Options = options.type
 
     type OptionsVals = (title.type := title.Raw) :: *[AnyDenotation]

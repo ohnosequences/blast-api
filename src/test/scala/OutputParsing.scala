@@ -30,7 +30,7 @@ class ParseBlastOutput extends org.scalatest.FunSuite {
     qend    :×:
     sstart  :×:
     send    :×:
-    outputFields.evalue :×: In[AnyOutputField]
+    outputFields.evalue :×: |[AnyOutputField]
   )
 
   test("can parse BLAST output") {
