@@ -13,8 +13,8 @@ case object api {
     /* This label should match the name of the command */
     lazy val name: Seq[String] = Seq(toString)
 
-    type Arguments  <: AnyRecordType { type Keys <: AnyProductType { type Bound <: AnyBlastOption } }
-    type Options    <: AnyRecordType { type Keys <: AnyProductType { type Bound <: AnyBlastOption } }
+    type Arguments  <: AnyRecordType { type Keys <: AnyProductType { type TypesBound <: AnyBlastOption } }
+    type Options    <: AnyRecordType { type Keys <: AnyProductType { type TypesBound <: AnyBlastOption } }
 
     // TODO move this out
     type OptionsVals <: Options#Raw
@@ -84,8 +84,8 @@ case object api {
     lazy val label: String = toString
   }
 
-  type AnyBlastOutputRecord = AnyRecordType { type Keys <: AnyProductType { type Bound <: AnyOutputField } }
-  type BlastOutputRecord[OFs <: AnyProductType { type Bound <: AnyOutputField }] = RecordType[OFs]
+  type AnyBlastOutputRecord = AnyRecordType { type Keys <: AnyProductType { type TypesBound <: AnyOutputField } }
+  type BlastOutputRecord[OFs <: AnyProductType { type TypesBound <: AnyOutputField }] = RecordType[OFs]
 
   class ValidOutputRecordFor[BC <: AnyBlastCommand] extends PredicateOver[AnyOutputField]
 
@@ -95,7 +95,7 @@ case object api {
       BC <: AnyBlastCommand,
       O <: AnyOutputField
     ](implicit
-      proof: O isOneOf BC#OutputFields#Keys#Types#Types
+      proof: O isOneOf BC#OutputFields#Keys#Types#Hola
     ): ValidOutputRecordFor[BC] isTrueOn O =
       App1 { _: O => () }
   }
