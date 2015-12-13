@@ -2,9 +2,7 @@ package ohnosequences.blast
 
 case object api {
 
-  import ohnosequences.cosas._, typeSets._, properties._, types._, records._
-  import ohnosequences.cosas.ops.typeSets.{ CheckForAll, ToList, MapToList }
-  import shapeless.poly._
+  import ohnosequences.cosas._, types._, records._, fns._, klists._, typeUnions._
   import java.io.File
 
   /*
@@ -15,20 +13,20 @@ case object api {
     /* This label should match the name of the command */
     lazy val name: Seq[String] = Seq(toString)
 
-    type Arguments  <: AnyRecord { type PropertySet <: AnyPropertySet.withBound[AnyBlastOption] }
-    type Options    <: AnyRecord { type PropertySet <: AnyPropertySet.withBound[AnyBlastOption] }
+    type Arguments  <: AnyRecordType { type Keys <: AnyProductType { type TypesBound <: AnyBlastOption } }
+    type Options    <: AnyRecordType { type Keys <: AnyProductType { type TypesBound <: AnyBlastOption } }
 
+    // TODO move this out
+    type OptionsVals <: Options#Raw
     /* default values for options; they are *optional*, so should have default values. */
-    val defaults: ValueOf[Options]
-    // val defaultsAsSeq: Seq[String]
+    val defaults: Options := OptionsVals
+    val defaultsAsSeq: Seq[String]
 
     /* valid output fields for this command */
-    type OutputFields <: AnyPropertySet { type Properties <: AnyTypeSet.Of[AnyOutputField] }
-
-    // type Raw >: (ValueOf[Arguments], ValueOf[Options]) <: (ValueOf[Arguments], ValueOf[Options])
+    type OutputFields <: AnyBlastOutputRecord
   }
 
-  sealed trait AnyBlastOption extends AnyProperty {
+  sealed trait AnyBlastOption extends AnyType {
 
     /* The `label` is used for generating the command-line `String` representation of this option. For a BLAST option `-x_yz_abc` name your option here `case object x_yz_abc`. */
     lazy val label: String = s"-${toString}"
@@ -52,27 +50,20 @@ case object api {
 
     A lot of different outputs, plus the possibility of choosing fields for CSV/TSV output.
   */
-  trait AnyBlastOutputRecord extends AnyRecord {
-
-    type PropertySet <: AnyPropertySet { type Properties <: AnyTypeSet.Of[AnyOutputField] }
-  }
-  abstract class BlastOutputRecord[
-    PS <: AnyPropertySet { type Properties <: AnyTypeSet.Of[AnyOutputField] }
-  ](val propertySet: PS) extends AnyBlastOutputRecord {
-
-    type PropertySet = PS
-    lazy val label = toString
-  }
+  // trait AnyBlastOutputRecord extends AnyRecordType {
+  //
+  //   type PropertySet <: AnyPropertySet { type Properties <: AnyTypeSet.Of[AnyOutputField] }
+  // }
 
   implicit def blastOutputRecordOps[OR <: AnyBlastOutputRecord](outputRec: OR): BlastOutputRecordOps[OR] =
     BlastOutputRecordOps(outputRec)
   case class BlastOutputRecordOps[OR <: AnyBlastOutputRecord](val outputRec: OR) extends AnyVal {
 
-    def toSeq(implicit
-      canMap: (typeLabel.type MapToList OR#Properties) { type O = String }
+    def toSeq[MO <: AnyKList.withBound[String]](implicit
+      canMap: AnyApp2At[mapKList[typeLabel.type,String], typeLabel.type, OR#Keys#Types] { type Y = MO }
     ): Seq[String] = {
 
-      val fields: Seq[String] = (outputRec.properties: OR#Properties) mapToList typeLabel
+      val fields: Seq[String] = (outputRec.keys.types: OR#Keys#Types) map typeLabel asList
 
       // '10' is the code for csv output
       Seq("-outfmt") :+ s"""10 ${fields.mkString(" ")}"""
@@ -85,7 +76,7 @@ case object api {
   */
   // use the label for parsing the key afterwards
   // TODO add parsing
-  sealed trait AnyOutputField extends AnyProperty
+  sealed trait AnyOutputField extends AnyType
 
   trait OutputField[V] extends AnyOutputField {
 
@@ -93,9 +84,20 @@ case object api {
     lazy val label: String = toString
   }
 
-  trait ValidOutputRecordFor[BC <: AnyBlastCommand] extends TypePredicate[AnyOutputField] {
+  type AnyBlastOutputRecord = AnyRecordType { type Keys <: AnyProductType { type TypesBound <: AnyOutputField } }
+  type BlastOutputRecord[OFs <: AnyProductType { type TypesBound <: AnyOutputField }] = RecordType[OFs]
 
-    type Condition[OF <: AnyOutputField] = OF isIn BC#OutputFields#Properties
+  class ValidOutputRecordFor[BC <: AnyBlastCommand] extends PredicateOver[AnyOutputField]
+
+  case object ValidOutputRecordFor {
+
+    implicit def trueIfOneOutputFields[
+      BC <: AnyBlastCommand,
+      O <: AnyOutputField
+    ](implicit
+      proof: O isOneOf BC#OutputFields#Keys#Types#AllTypes
+    ): ValidOutputRecordFor[BC] isTrueOn O =
+      App1 { _: O => () }
   }
 
   /*
@@ -103,21 +105,25 @@ case object api {
 
     for command values we generate a `Seq[String]` which is valid command expression that you can execute (assuming BLAST installed) using `scala.sys.process` or anything similar.
   */
-  case object optionValueToSeq extends shapeless.Poly1 {
+  case object optionValueToSeq extends DepFn1[AnyDenotation, Seq[String]] {
 
-    implicit def default[BO <: AnyBlastOption](implicit option: AnyBlastOption.is[BO]) =
-      at[ValueOf[BO]]{ v: ValueOf[BO] => Seq(option.label) ++ option.valueToString(v.value).filterNot(_.isEmpty) }
+    implicit def default[FO <: AnyBlastOption, V <: FO#Raw](implicit
+      option: FO with AnyBlastOption { type Raw = FO#Raw }
+    )
+    : AnyApp1At[optionValueToSeq.type, FO := V] { type Y = Seq[String] }=
+      App1 { v: FO := V => Seq(option.label) ++ option.valueToString(v.value).filterNot(_.isEmpty) }
   }
 
   trait AnyBlastExpressionType {
 
     type Command <: AnyBlastCommand
     val command: Command
-    // TODO a more succint bound
+
     type OutputRecord <: AnyBlastOutputRecord
     val outputRecord: OutputRecord
 
-    val validRecord: OutputRecord#Properties CheckForAll ValidOutputRecordFor[Command]
+    // TODO fix this!
+    // val validRecord: OutputRecord#Keys CheckForAll ValidOutputRecordFor[Command]
   }
 
   abstract class BlastExpressionType[
@@ -127,9 +133,11 @@ case object api {
     val command: BC
   )(
     val outputRecord: OR
-  )(implicit
-    val validRecord: OR#Properties CheckForAll ValidOutputRecordFor[BC]
   )
+  // TODO fix this!
+  // (implicit
+  //   val validRecord: OR#Keys CheckForAll ValidOutputRecordFor[BC]
+  // )
   extends AnyBlastExpressionType {
 
     type Command = BC
@@ -141,36 +149,48 @@ case object api {
     type Tpe <: AnyBlastExpressionType
     val tpe: Tpe
 
-    val optionValues: ValueOf[Tpe#Command#Options]
-    val argumentValues: ValueOf[Tpe#Command#Arguments]
+    type OptionVals <: Tpe#Command#Options#Raw
+    type ArgumentVals <: Tpe#Command#Arguments#Raw
+
+    val optionValues: Tpe#Command#Options := OptionVals
+    val argumentValues: Tpe#Command#Arguments := ArgumentVals
   }
 
   case class BlastExpression[
-    T <: AnyBlastExpressionType
+    T <: AnyBlastExpressionType,
+    OV <: T#Command#Options#Raw,
+    AV <: T#Command#Arguments#Raw
   ](
     val tpe: T
   )(
-    val optionValues: ValueOf[T#Command#Options],
-    val argumentValues: ValueOf[T#Command#Arguments]
+    val optionValues: T#Command#Options := OV,
+    val argumentValues: T#Command#Arguments := AV
   )
   extends AnyBlastExpression {
 
     type Tpe = T
+    type OptionVals = OV
+    type ArgumentVals = AV
   }
 
   implicit def blastExpressionOps[Expr <: AnyBlastExpression](expr: Expr): BlastExpressionOps[Expr] =
     BlastExpressionOps(expr)
   case class BlastExpressionOps[Expr <: AnyBlastExpression](val expr: Expr) extends AnyVal {
 
-    def cmd(implicit
-      mapArgs: (optionValueToSeq.type MapToList Expr#Tpe#Command#Arguments#Raw) { type O = Seq[String] },
-      mapOpts: (optionValueToSeq.type MapToList Expr#Tpe#Command#Options#Raw) { type O = Seq[String] },
-      mapOutputProps: (typeLabel.type MapToList Expr#Tpe#OutputRecord#Properties) { type O = String }
+    def cmd[
+      MA <: AnyKList.withBound[Seq[String]],
+      MO <: AnyKList.withBound[Seq[String]],
+      MOP <: AnyKList.withBound[String]
+    ](implicit
+      mapArgs: AnyApp2At[mapKList[optionValueToSeq.type,Seq[String]], optionValueToSeq.type, Expr#ArgumentVals] { type Y = MA },
+      mapOpts: AnyApp2At[mapKList[optionValueToSeq.type,Seq[String]], optionValueToSeq.type, Expr#OptionVals] { type Y = MO },
+      mapOutputProps: AnyApp2At[mapKList[typeLabel.type,String], typeLabel.type, Expr#Tpe#OutputRecord#Keys#Types] { type Y = MOP }
+      // mapOutputProps: (typeLabel.type MapToList Expr#Tpe#OutputRecord#Properties) { type O = String }
     ): Seq[String] = {
 
-      val (argsSeqs, optsSeqs): (List[Seq[String]], List[Seq[String]]) = (
-        (expr.argumentValues.value: Expr#Tpe#Command#Arguments#Raw) mapToList optionValueToSeq,
-        (expr.optionValues.value: Expr#Tpe#Command#Options#Raw)     mapToList optionValueToSeq
+      val (argsSeqs, optsSeqs): (Seq[Seq[String]], Seq[Seq[String]]) = (
+        (expr.argumentValues.value: Expr#ArgumentVals).map(optionValueToSeq).asList,
+        (expr.optionValues.value: Expr#OptionVals).map(optionValueToSeq).asList
       )
 
       expr.tpe.command.name ++
@@ -189,58 +209,57 @@ case object api {
   case object blastn extends AnyBlastCommand {
 
     type Arguments = arguments.type
-    case object arguments extends Record(db :&: query :&: out :&: □)
+    case object arguments extends RecordType(db :×: query :×: out :×: |[AnyBlastOption])
     type Options = options.type
-    case object options extends Record(
-      num_threads :&:
-      task        :&:
-      evalue      :&:
-      max_target_seqs :&:
-      strand      :&:
-      word_size   :&:
-      show_gis    :&:
-      ungapped    :&: □
+    case object options extends RecordType(
+      num_threads :×:
+      task        :×:
+      evalue      :×:
+      max_target_seqs :×:
+      strand      :×:
+      word_size   :×:
+      show_gis    :×:
+      ungapped    :×: |[AnyBlastOption]
     )
 
     import ohnosequences.blast.api.outputFields._
-    type OutputFields =
-      qseqid      :&:
-      sseqid      :&:
-      sgi         :&:
-      qstart      :&:
-      qend        :&:
-      sstart      :&:
-      send        :&:
-      qlen        :&:
-      slen        :&:
-      bitscore    :&:
-      score       :&: □
 
-    val outputFields: OutputFields =
-      qseqid      :&:
-      sseqid      :&:
-      sgi         :&:
-      qstart      :&:
-      qend        :&:
-      sstart      :&:
-      send        :&:
-      qlen        :&:
-      slen        :&:
-      bitscore    :&:
-      score       :&: □
-
-    val defaults = options(
-      num_threads(1)                :~:
-      task(blastn)                  :~:
-      api.evalue(10)                :~:
-      max_target_seqs(100)          :~:
-      strand(Strands.both)          :~:
-      word_size(4)                  :~:
-      show_gis(false)               :~:
-      ungapped(false)               :~: ∅
+    type OutputFields = outputFields.type
+    case object outputFields extends RecordType(
+      qseqid      :×:
+      sseqid      :×:
+      sgi         :×:
+      qstart      :×:
+      qend        :×:
+      sstart      :×:
+      send        :×:
+      qlen        :×:
+      slen        :×:
+      bitscore    :×:
+      score       :×: |[AnyOutputField]
     )
 
-    lazy val defaultsAsSeq = (defaults.value mapToList optionValueToSeq).flatten
+    type OptionsVals = (num_threads.type      := num_threads.Raw)      ::
+                      (task.type             := task.Raw)             ::
+                      (api.evalue.type       := api.evalue.Raw)       ::
+                      (max_target_seqs.type  := max_target_seqs.Raw)  ::
+                      (strand.type           := strand.Raw)           ::
+                      (word_size.type        := word_size.Raw)        ::
+                      (show_gis.type         := show_gis.Raw)         ::
+                      (ungapped.type         := ungapped.Raw)         :: *[AnyDenotation]
+
+    val defaults: Options := OptionsVals = options := (
+      num_threads(1)                ::
+      task(blastn)                  ::
+      api.evalue(10: Double)        ::
+      max_target_seqs(100)          ::
+      strand(Strands.both)          ::
+      word_size(4)                  ::
+      show_gis(false)               ::
+      ungapped(false)               :: *[AnyDenotation]
+    )
+
+    lazy val defaultsAsSeq = (defaults.value map optionValueToSeq).asList.flatten
 
     // task depends on each command, that's why it is here.
     case object task extends BlastOption[Task](t => t.name)
@@ -255,16 +274,17 @@ case object api {
   type blastp = blastp.type
   case object blastp extends AnyBlastCommand {
 
-    case object arguments extends Record(db :&: query :&: out :&: □)
+    case object arguments extends RecordType(db :×: query :×: out :×: |[AnyBlastOption])
     type Arguments = arguments.type
-    case object options extends Record(num_threads :&: □)
+    case object options extends RecordType(num_threads :×: |[AnyBlastOption])
     type Options = options.type
 
+    type OptionsVals = (num_threads.type := num_threads.Raw) :: *[AnyDenotation]
     val defaults = options(
-      num_threads(1) :~: ∅
+      num_threads(1) :: *[AnyDenotation]
     )
 
-    lazy val defaultsAsSeq = (defaults.value mapToList optionValueToSeq).flatten
+    lazy val defaultsAsSeq = (defaults.value map optionValueToSeq asList).flatten
 
     case object task extends BlastOption[Task](t => t.name)
     sealed abstract class Task(val name: String)
@@ -276,16 +296,17 @@ case object api {
   type blastx   = blastx.type
   case object blastx extends AnyBlastCommand {
 
-    case object arguments extends Record(db :&: query :&: out :&: □)
+    case object arguments extends RecordType(db :×: query :×: out :×: |[AnyBlastOption])
     type Arguments = arguments.type
-    case object options extends Record(num_threads :&: □)
+    case object options extends RecordType(num_threads :×: |[AnyBlastOption])
     type Options = options.type
 
+    type OptionsVals = (num_threads.type := num_threads.Raw) :: *[AnyDenotation]
     val defaults = options(
-      num_threads(1) :~: ∅
+      num_threads(1) :: *[AnyDenotation]
     )
 
-    lazy val defaultsAsSeq = (defaults.value mapToList optionValueToSeq).flatten
+    lazy val defaultsAsSeq = (defaults.value map optionValueToSeq).asList.flatten
 
     case object task extends BlastOption[Task](t => t.name)
     sealed abstract class Task(val name: String)
@@ -296,14 +317,15 @@ case object api {
   type tblastn = tblastn.type
   case object tblastn extends AnyBlastCommand {
 
-    case object arguments extends Record(db :&: query :&: out :&: □)
+    case object arguments extends RecordType(db :×: query :×: out :×: |[AnyBlastOption])
     type Arguments = arguments.type
-    case object options extends Record(num_threads :&: □)
+    case object options extends RecordType(num_threads :×: |[AnyBlastOption])
     type Options = options.type
 
-    val defaults = options := num_threads(1) :~: ∅
+    type OptionsVals = (num_threads.type := num_threads.Raw) :: *[AnyDenotation]
+    val defaults = options := num_threads(1) :: *[AnyDenotation]
 
-    lazy val defaultsAsSeq = (defaults.value mapToList optionValueToSeq).flatten
+    lazy val defaultsAsSeq = (defaults.value map optionValueToSeq asList).flatten
 
     case object task extends BlastOption[Task](t => t.name)
     sealed abstract class Task(val name: String)
@@ -314,27 +336,29 @@ case object api {
   type tblastx = tblastx.type
   case object tblastx extends AnyBlastCommand {
 
-    case object arguments extends Record(db :&: query :&: out :&: □)
+    case object arguments extends RecordType(db :×: query :×: out :×: |[AnyBlastOption])
     type Arguments = arguments.type
-    case object options extends Record(num_threads :&: □)
+    case object options extends RecordType(num_threads :×: |[AnyBlastOption])
     type Options = options.type
 
-    val defaults = options := num_threads(1) :~: ∅
+    type OptionsVals = (num_threads.type := num_threads.Raw) :: *[AnyDenotation]
+    val defaults = options := num_threads(1) :: *[AnyDenotation]
 
-    lazy val defaultsAsSeq = (defaults.value mapToList optionValueToSeq).flatten
+    lazy val defaultsAsSeq = (defaults.value map optionValueToSeq asList).flatten
   }
 
   type makeblastdb = makeblastdb.type
   case object makeblastdb extends AnyBlastCommand {
 
-    case object arguments extends Record(in :&: input_type :&: dbtype :&: □)
+    case object arguments extends RecordType(in :×: input_type :×: dbtype :×: |[AnyBlastOption])
     type Arguments = arguments.type
-    case object options extends Record(title :&: □)
+    case object options extends RecordType(title :×: |[AnyBlastOption])
     type Options = options.type
 
-    val defaults = options := title("") :~: ∅
+    type OptionsVals = (title.type := title.Raw) :: *[AnyDenotation]
+    val defaults = options := title("") :: *[AnyDenotation]
 
-    lazy val defaultsAsSeq = (defaults.value mapToList optionValueToSeq).flatten
+    lazy val defaultsAsSeq = (defaults.value map optionValueToSeq asList).flatten
   }
 
   /*
@@ -408,10 +432,10 @@ case object api {
     /* Query Seq-id */
     type qseqid = qseqid.type
     case object qseqid    extends OutputField[String]
-    implicit val qseqidParser: PropertyParser[qseqid,String] =
-      PropertyParser(qseqid, qseqid.label){ s: String => Some(s) }
-    implicit val qseqidSerializer: PropertySerializer[qseqid,String] =
-      PropertySerializer(qseqid, qseqid.label){ v: String => Some(v) }
+    implicit val qseqidParser: DenotationParser[qseqid,String,String] =
+      new DenotationParser(qseqid, qseqid.label)({ s: String => Some(s) })
+    implicit val qseqidSerializer: DenotationSerializer[qseqid,String,String] =
+      new DenotationSerializer(qseqid, qseqid.label)({ v: String => Some(v) })
 
     /* Query GI */
     case object qgi       extends OutputField[String]
@@ -423,18 +447,18 @@ case object api {
     /* Query sequence length */
     type qlen = qlen.type
     case object qlen      extends OutputField[Int]
-    implicit val qlenParser: PropertyParser[qlen,String] =
-      PropertyParser(qlen, qlen.label){ intParser }
-    implicit val qlenSerializer: PropertySerializer[qlen,String] =
-      PropertySerializer(qlen, qlen.label){ v => Some(v.toString) }
+    implicit val qlenParser: DenotationParser[qlen,Int,String] =
+      new DenotationParser(qlen, qlen.label)({ intParser })
+    implicit val qlenSerializer: DenotationSerializer[qlen,Int,String] =
+      new DenotationSerializer(qlen, qlen.label)({ v => Some(v.toString) })
 
     /* Subject Seq-id */
     type sseqid = sseqid.type
     case object sseqid    extends OutputField[String]
-    implicit val sseqidParser: PropertyParser[sseqid,String] =
-      PropertyParser(sseqid, sseqid.label){ s: String => Some(s) }
-    implicit val sseqidSerializer: PropertySerializer[sseqid,String] =
-      PropertySerializer(sseqid, sseqid.label){ v: String => Some(v) }
+    implicit val sseqidParser: DenotationParser[sseqid,String,String] =
+      new DenotationParser(sseqid, sseqid.label)({ s: String => Some(s) })
+    implicit val sseqidSerializer: DenotationSerializer[sseqid,String,String] =
+      new DenotationSerializer(sseqid, sseqid.label)({ v: String => Some(v) })
 
 
     // means All subject Seq-id(s), separated by a ';'
@@ -443,10 +467,10 @@ case object api {
     /* Subject GI */
     type sgi = sgi.type
     case object sgi       extends OutputField[String]
-    implicit val sgiParser: PropertyParser[sgi,String] =
-      PropertyParser(sgi, sgi.label){ s: String => Some(s) }
-    implicit val sgiSerializer: PropertySerializer[sgi,String] =
-      PropertySerializer(sgi, sgi.label){ v: String => Some(v) }
+    implicit val sgiParser: DenotationParser[sgi,String,String] =
+      new DenotationParser(sgi, sgi.label)({ s: String => Some(s) })
+    implicit val sgiSerializer: DenotationSerializer[sgi,String,String] =
+      new DenotationSerializer(sgi, sgi.label)({ v: String => Some(v) })
 
     // means All subject GIs
     case object sallgi    extends OutputField[List[String]]
@@ -460,43 +484,43 @@ case object api {
     /* Subject sequence length */
     type slen = slen.type
     case object slen      extends OutputField[Int]
-    implicit val slenParser: PropertyParser[slen,String] =
-      PropertyParser(slen, slen.label){ intParser }
-    implicit val slenSerializer: PropertySerializer[slen,String] =
-      PropertySerializer(slen, slen.label){ v => Some(v.toString) }
+    implicit val slenParser: DenotationParser[slen,Int,String] =
+      new DenotationParser(slen, slen.label)(intParser)
+    implicit val slenSerializer: DenotationSerializer[slen,Int,String] =
+      new DenotationSerializer(slen, slen.label)({ v => Some(v.toString) })
 
 
     /* Start of alignment in query */
     type qstart = qstart.type
     case object qstart    extends OutputField[Int]
-    implicit val qstartParser: PropertyParser[qstart,String] =
-      PropertyParser(qstart, qstart.label){ intParser }
-    implicit val qstartSerializer: PropertySerializer[qstart,String] =
-      PropertySerializer(qstart, qstart.label){ v => Some(v.toString) }
+    implicit val qstartParser: DenotationParser[qstart,Int,String] =
+      new DenotationParser(qstart, qstart.label)(intParser)
+    implicit val qstartSerializer: DenotationSerializer[qstart,Int,String] =
+      new DenotationSerializer(qstart, qstart.label)({ v => Some(v.toString) })
 
     /* End of alignment in query */
     type qend = qend.type
     case object qend      extends OutputField[Int]
-    implicit val qendParser: PropertyParser[qend,String] =
-      PropertyParser(qend, qend.label){ intParser }
-    implicit val qendSerializer: PropertySerializer[qend,String] =
-      PropertySerializer(qend, qend.label){ v => Some(v.toString) }
+    implicit val qendParser: DenotationParser[qend,Int,String] =
+      new DenotationParser(qend, qend.label)(intParser)
+    implicit val qendSerializer: DenotationSerializer[qend,Int,String] =
+      new DenotationSerializer(qend, qend.label)({ v => Some(v.toString) })
 
     /* Start of alignment in subject */
     type sstart = sstart.type
     case object sstart    extends OutputField[Int]
-    implicit val sstartParser: PropertyParser[sstart,String] =
-      PropertyParser(sstart, sstart.label){ intParser }
-    implicit val sstartSerializer: PropertySerializer[sstart,String] =
-      PropertySerializer(sstart, sstart.label){ v => Some(v.toString) }
+    implicit val sstartParser: DenotationParser[sstart,Int,String] =
+    new DenotationParser(sstart, sstart.label)(intParser)
+    implicit val sstartSerializer: DenotationSerializer[sstart,Int,String] =
+      new DenotationSerializer(sstart, sstart.label)({ v => Some(v.toString) })
 
     /* End of alignment in subject */
     type send = send.type
     case object send      extends OutputField[Int]
-    implicit val sendParser: PropertyParser[send,String] =
-      PropertyParser(send, send.label){ intParser }
-    implicit val sendSerializer: PropertySerializer[send,String] =
-      PropertySerializer(send, send.label){ v => Some(v.toString) }
+    implicit val sendParser: DenotationParser[send,Int,String] =
+      new DenotationParser(send, send.label)(intParser)
+    implicit val sendSerializer: DenotationSerializer[send,Int,String] =
+      new DenotationSerializer(send, send.label)({ v => Some(v.toString) })
 
     // means Aligned part of query sequence
     type qseq = qseq.type
@@ -509,26 +533,26 @@ case object api {
     // means Expect value
     case object evalue    extends OutputField[Double]
     // TODO this does not seem to work as expected
-    implicit val evalueParser: PropertyParser[evalue.type,String] =
-      PropertyParser(evalue, evalue.label){ doubleFromScientificNotation }
-    implicit val evalueSerializer: PropertySerializer[evalue.type,String] =
-      PropertySerializer(evalue, evalue.label){ v => Some(v.toString) }
+    implicit val evalueParser: DenotationParser[evalue.type,Double,String] =
+      new DenotationParser(evalue, evalue.label)(doubleFromScientificNotation)
+    implicit val evalueSerializer: DenotationSerializer[evalue.type,Double,String] =
+      new DenotationSerializer(evalue, evalue.label)({ v => Some(v.toString) })
 
     // means Bit score
     type bitscore = bitscore.type
     case object bitscore  extends OutputField[Long]
-    implicit val bitscoreParser: PropertyParser[bitscore,String] =
-      PropertyParser(bitscore, bitscore.label){ longParser }
-    implicit val bitscoreSerializer: PropertySerializer[bitscore,String] =
-      PropertySerializer(bitscore, bitscore.label){ v => Some(v.toString) }
+    implicit val bitscoreParser: DenotationParser[bitscore,Long,String] =
+      new DenotationParser(bitscore, bitscore.label)(longParser)
+    implicit val bitscoreSerializer: DenotationSerializer[bitscore,Long,String] =
+      new DenotationSerializer(bitscore, bitscore.label)({ v => Some(v.toString) })
 
     // means Raw score
     type score = score.type
     case object score     extends OutputField[Long]
-    implicit val scoreParser: PropertyParser[score,String] =
-      PropertyParser(score, score.label){ longParser }
-    implicit val scoreSerializer: PropertySerializer[score,String] =
-      PropertySerializer(score, score.label){ v => Some(v.toString) }
+    implicit val scoreParser: DenotationParser[score,Long,String] =
+      new DenotationParser(score, score.label)(longParser)
+    implicit val scoreSerializer: DenotationSerializer[score,Long,String] =
+      new DenotationSerializer(score, score.label)({ v => Some(v.toString) })
 
     // means Alignment length
     case object length    extends OutputField[Int]

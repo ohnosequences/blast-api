@@ -2,7 +2,7 @@ package ohnosequences.blast.test
 
 import ohnosequences.blast.api._
 import ohnosequences.blast.api._, outputFields._
-import ohnosequences.cosas._, types._, typeSets._, properties._, records._
+import ohnosequences.cosas._, types._, klists._, records._
 import java.io.File
 
 case object csvUtils {
@@ -20,17 +20,17 @@ case object csvUtils {
 class ParseBlastOutput extends org.scalatest.FunSuite {
 
   case object outRecord extends BlastOutputRecord(
-    qseqid  :&:
-    qlen    :&:
-    sseqid  :&:
-    sgi     :&:
-    sacc    :&:
-    slen    :&:
-    qstart  :&:
-    qend    :&:
-    sstart  :&:
-    send    :&:
-    outputFields.evalue :&: □
+    qseqid  :×:
+    qlen    :×:
+    sseqid  :×:
+    sgi     :×:
+    sacc    :×:
+    slen    :×:
+    qstart  :×:
+    qend    :×:
+    sstart  :×:
+    send    :×:
+    outputFields.evalue :×: |[AnyOutputField]
   )
 
   test("can parse BLAST output") {
@@ -39,15 +39,15 @@ class ParseBlastOutput extends org.scalatest.FunSuite {
 
     val blastOutput: File = new File("blastn.test3.out.txt")
 
-    rows(blastOutput)(outRecord.properties mapToList typeLabel) map { row => outRecord parse row } foreach {
+    rows(blastOutput)(outRecord.keys.types map typeLabel asList) map { row => outRecord.parse(row) } foreach {
 
       optRec => optRec match {
 
-        case Right(b: ValueOf[outRecord.type]) =>  {
+        case Right(b) =>  {
 
           println("correctly parsed record:")
           // TODO map poly
-          println( b.value mapToHList denotationValue )
+          println( b.value map denotationValue )
         }
 
         case Left(v) => println{ s"oh, an error: ${v}" }
