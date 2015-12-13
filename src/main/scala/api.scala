@@ -95,7 +95,7 @@ case object api {
       BC <: AnyBlastCommand,
       O <: AnyOutputField
     ](implicit
-      proof: O isOneOf BC#OutputFields#Keys#Types#Hola
+      proof: O isOneOf BC#OutputFields#Keys#Types#AllTypes
     ): ValidOutputRecordFor[BC] isTrueOn O =
       App1 { _: O => () }
   }
