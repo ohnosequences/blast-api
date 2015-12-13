@@ -7,8 +7,8 @@ description   := "A typesafe Scala BLAST API"
 scalaVersion  := "2.11.7"
 
 libraryDependencies ++= Seq(
-  "ohnosequences"         %% "cosas"      % "0.8.0-SNAPSHOT",
-  "ohnosequences"         %% "datasets"   % "0.2.0-new-cosas-SNAPSHOT",
+  "ohnosequences"         %% "cosas"      % "0.8.0",
+  "ohnosequences"         %% "datasets"   % "0.2.0",
   "org.scalatest"         %% "scalatest"  % "2.2.5" % Test,
   "com.github.tototoshi"  %% "scala-csv"  % "1.2.2" % Test
 )
