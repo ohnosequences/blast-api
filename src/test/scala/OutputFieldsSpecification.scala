@@ -23,18 +23,10 @@ class OutputFieldsSpecification extends org.scalatest.FunSuite {
     optionValues = blastn.defaults update (num_threads(24) :: *[AnyDenotation])
   )
 
-  test("can build commands") {
-
-    println(stmt.cmd)
-  }
-
   test("can specify output data") {
 
     case object outputType extends BlastOutputType(exprType, "test.output")
 
     case object blastnOutput extends BlastOutput(outputType, "sample-blastn-output")
-
   }
-
-
 }

@@ -20,16 +20,16 @@ case object csvUtils {
 class ParseBlastOutput extends org.scalatest.FunSuite {
 
   case object outRecord extends BlastOutputRecord(
-    qseqid  :×:
-    qlen    :×:
-    sseqid  :×:
-    sgi     :×:
-    sacc    :×:
-    slen    :×:
-    qstart  :×:
-    qend    :×:
-    sstart  :×:
-    send    :×:
+    qseqid              :×:
+    qlen                :×:
+    sseqid              :×:
+    sgi                 :×:
+    sacc                :×:
+    slen                :×:
+    qstart              :×:
+    qend                :×:
+    sstart              :×:
+    send                :×:
     outputFields.evalue :×: |[AnyOutputField]
   )
 
@@ -39,18 +39,16 @@ class ParseBlastOutput extends org.scalatest.FunSuite {
 
     val blastOutput: File = new File("blastn.test3.out.txt")
 
-    rows(blastOutput)(outRecord.keys.types map typeLabel asList) map { row => outRecord.parse(row) } foreach {
+    rows(blastOutput)(outRecord.keys.types map typeLabel asList) map { row => outRecord.parse(row) } foreach { optRec =>
 
-      optRec => optRec match {
+      optRec match {
 
-        case Right(b) =>  {
-
+        case Right(b) => {
           println("correctly parsed record:")
-          // TODO map poly
           println( b.value map denotationValue )
         }
 
-        case Left(v) => println{ s"oh, an error: ${v}" }
+        case Left(v)  => println{ s"oh, an error: ${v}" }
       }
     }
   }
