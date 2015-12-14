@@ -3,12 +3,12 @@ package ohnosequences.blast.test
 import ohnosequences.blast.api._
 import ohnosequences.blast.api._, outputFields._
 import ohnosequences.cosas._, types._, klists._, records._
-import java.io.File
+import better.files._
 
 case object csvUtils {
 
   import com.github.tototoshi.csv._
-  def csvReader(file: File): CSVReader = CSVReader.open(file)
+  def csvReader(file: File): CSVReader = CSVReader.open(file.toJava)
 
   def lines(file: File): Iterator[Seq[String]] = csvReader(file) iterator
 
@@ -37,7 +37,7 @@ class ParseBlastOutput extends org.scalatest.FunSuite {
 
     import csvUtils._
 
-    val blastOutput: File = new File("blastn.test3.out.txt")
+    val blastOutput: File = File("blastn.test3.out.txt")
 
     rows(blastOutput)(outRecord.keys.types map typeLabel asList) map { row => outRecord.parse(row) } foreach { optRec =>
 
