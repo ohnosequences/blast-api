@@ -5,7 +5,7 @@ package ohnosequences.blast
 case object api {
 
   import ohnosequences.cosas._, types._, records._, fns._, klists._, typeUnions._
-  import java.io.File
+  import better.files._
 ```
 
 
@@ -16,7 +16,7 @@ This trait models a command part of the `BLAST` suite, like `blastn`, `blastp`, 
   sealed trait AnyBlastCommand {
 ```
 
-This label should match the name of the command
+This label **should** match the **name** of the command
 
 ```scala
     lazy val name: Seq[String] = Seq(toString)
@@ -24,7 +24,7 @@ This label should match the name of the command
     type Arguments  <: AnyRecordType { type Keys <: AnyProductType { type TypesBound <: AnyBlastOption } }
     type Options    <: AnyRecordType { type Keys <: AnyProductType { type TypesBound <: AnyBlastOption } }
 
-    // TODO move this out
+    // NOTE this could be moved to a typeclass for default values
     type OptionsVals <: Options#Raw
 ```
 
@@ -208,16 +208,22 @@ for command values we generate a `Seq[String]` which is valid command expression
     BlastExpressionOps(expr)
   case class BlastExpressionOps[Expr <: AnyBlastExpression](val expr: Expr) extends AnyVal {
 
-    def cmd[
+    final def cmd[
       MA <: AnyKList.withBound[Seq[String]],
       MO <: AnyKList.withBound[Seq[String]],
       MOP <: AnyKList.withBound[String]
     ](implicit
-      mapArgs: AnyApp2At[mapKList[optionValueToSeq.type,Seq[String]], optionValueToSeq.type, Expr#ArgumentVals] { type Y = MA },
-      mapOpts: AnyApp2At[mapKList[optionValueToSeq.type,Seq[String]], optionValueToSeq.type, Expr#OptionVals] { type Y = MO },
-      mapOutputProps: AnyApp2At[mapKList[typeLabel.type,String], typeLabel.type, Expr#Tpe#OutputRecord#Keys#Types] { type Y = MOP }
-      // mapOutputProps: (typeLabel.type MapToList Expr#Tpe#OutputRecord#Properties) { type O = String }
-    ): Seq[String] = {
+      mapArgs: AnyApp2At[mapKList[optionValueToSeq.type,Seq[String]], optionValueToSeq.type, Expr#ArgumentVals] {
+        type Y = MA
+      },
+      mapOpts: AnyApp2At[mapKList[optionValueToSeq.type,Seq[String]], optionValueToSeq.type, Expr#OptionVals] {
+        type Y = MO
+      },
+      mapOutputProps: AnyApp2At[mapKList[typeLabel.type,String], typeLabel.type, Expr#Tpe#OutputRecord#Keys#Types] {
+        type Y = MOP
+      }
+    )
+    : Seq[String] = {
 
       val (argsSeqs, optsSeqs): (Seq[Seq[String]], Seq[Seq[String]]) = (
         (expr.argumentValues.value: Expr#ArgumentVals).map(optionValueToSeq).asList,
@@ -246,51 +252,51 @@ All the BLAST suite commands, together with their arguments, options and default
     case object arguments extends RecordType(db :×: query :×: out :×: |[AnyBlastOption])
     type Options = options.type
     case object options extends RecordType(
-      num_threads :×:
-      task        :×:
-      evalue      :×:
+      num_threads     :×:
+      task            :×:
+      evalue          :×:
       max_target_seqs :×:
-      strand      :×:
-      word_size   :×:
-      show_gis    :×:
-      ungapped    :×: |[AnyBlastOption]
+      strand          :×:
+      word_size       :×:
+      show_gis        :×:
+      ungapped        :×: |[AnyBlastOption]
     )
 
     import ohnosequences.blast.api.outputFields._
 
     type OutputFields = outputFields.type
     case object outputFields extends RecordType(
-      qseqid      :×:
-      sseqid      :×:
-      sgi         :×:
-      qstart      :×:
-      qend        :×:
-      sstart      :×:
-      send        :×:
-      qlen        :×:
-      slen        :×:
-      bitscore    :×:
-      score       :×: |[AnyOutputField]
+      qseqid    :×:
+      sseqid    :×:
+      sgi       :×:
+      qstart    :×:
+      qend      :×:
+      sstart    :×:
+      send      :×:
+      qlen      :×:
+      slen      :×:
+      bitscore  :×:
+      score     :×: |[AnyOutputField]
     )
 
-    type OptionsVals = (num_threads.type      := num_threads.Raw)      ::
-                      (task.type             := task.Raw)             ::
-                      (api.evalue.type       := api.evalue.Raw)       ::
-                      (max_target_seqs.type  := max_target_seqs.Raw)  ::
-                      (strand.type           := strand.Raw)           ::
-                      (word_size.type        := word_size.Raw)        ::
-                      (show_gis.type         := show_gis.Raw)         ::
-                      (ungapped.type         := ungapped.Raw)         :: *[AnyDenotation]
+    type OptionsVals =  (num_threads.type      := num_threads.Raw)      ::
+                        (task.type             := task.Raw)             ::
+                        (api.evalue.type       := api.evalue.Raw)       ::
+                        (max_target_seqs.type  := max_target_seqs.Raw)  ::
+                        (strand.type           := strand.Raw)           ::
+                        (word_size.type        := word_size.Raw)        ::
+                        (show_gis.type         := show_gis.Raw)         ::
+                        (ungapped.type         := ungapped.Raw)         :: *[AnyDenotation]
 
     val defaults: Options := OptionsVals = options := (
-      num_threads(1)                ::
-      task(blastn)                  ::
-      api.evalue(10: Double)        ::
-      max_target_seqs(100)          ::
-      strand(Strands.both)          ::
-      word_size(4)                  ::
-      show_gis(false)               ::
-      ungapped(false)               :: *[AnyDenotation]
+      num_threads(1)          ::
+      task(blastn)            ::
+      api.evalue(10: Double)  ::
+      max_target_seqs(100)    ::
+      strand(Strands.both)    ::
+      word_size(4)            ::
+      show_gis(false)         ::
+      ungapped(false)         :: *[AnyDenotation]
     )
 
     lazy val defaultsAsSeq = (defaults.value map optionValueToSeq).asList.flatten
@@ -403,9 +409,9 @@ As the same options are valid for several commands, they are defined independent
 
 
 ```scala
-  case object db    extends BlastOption[File](f => f.getCanonicalPath.toString)
-  case object query extends BlastOption[File](f => f.getCanonicalPath.toString)
-  case object out   extends BlastOption[File](f => f.getCanonicalPath.toString)
+  case object db    extends BlastOption[File](f => f.path.toString)
+  case object query extends BlastOption[File](f => f.path.toString)
+  case object out   extends BlastOption[File](f => f.path.toString)
 
   case object num_threads     extends BlastOption[Int](n => n.toString)
   case object evalue          extends BlastOption[Double](n => n.toString)
@@ -430,7 +436,7 @@ As the same options are valid for several commands, they are defined independent
 
 ```scala
   case object title extends BlastOption[String](x => x)
-  case object in extends BlastOption[File](f => f.getCanonicalPath.toString)
+  case object in extends BlastOption[File](f => f.path.toString)
 
   case object input_type extends BlastOption[DBInputType](t => t.toString)
   sealed trait DBInputType

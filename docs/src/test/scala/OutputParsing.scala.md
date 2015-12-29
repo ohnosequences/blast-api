@@ -5,12 +5,12 @@ package ohnosequences.blast.test
 import ohnosequences.blast.api._
 import ohnosequences.blast.api._, outputFields._
 import ohnosequences.cosas._, types._, klists._, records._
-import java.io.File
+import better.files._
 
 case object csvUtils {
 
   import com.github.tototoshi.csv._
-  def csvReader(file: File): CSVReader = CSVReader.open(file)
+  def csvReader(file: File): CSVReader = CSVReader.open(file.toJava)
 
   def lines(file: File): Iterator[Seq[String]] = csvReader(file) iterator
 
@@ -22,16 +22,16 @@ case object csvUtils {
 class ParseBlastOutput extends org.scalatest.FunSuite {
 
   case object outRecord extends BlastOutputRecord(
-    qseqid  :×:
-    qlen    :×:
-    sseqid  :×:
-    sgi     :×:
-    sacc    :×:
-    slen    :×:
-    qstart  :×:
-    qend    :×:
-    sstart  :×:
-    send    :×:
+    qseqid              :×:
+    qlen                :×:
+    sseqid              :×:
+    sgi                 :×:
+    sacc                :×:
+    slen                :×:
+    qstart              :×:
+    qend                :×:
+    sstart              :×:
+    send                :×:
     outputFields.evalue :×: |[AnyOutputField]
   )
 
@@ -39,20 +39,18 @@ class ParseBlastOutput extends org.scalatest.FunSuite {
 
     import csvUtils._
 
-    val blastOutput: File = new File("blastn.test3.out.txt")
+    val blastOutput: File = File("blastn.test3.out.txt")
 
-    rows(blastOutput)(outRecord.keys.types map typeLabel asList) map { row => outRecord.parse(row) } foreach {
+    rows(blastOutput)(outRecord.keys.types map typeLabel asList) map { row => outRecord.parse(row) } foreach { optRec =>
 
-      optRec => optRec match {
+      optRec match {
 
-        case Right(b) =>  {
-
+        case Right(b) => {
           println("correctly parsed record:")
-          // TODO map poly
           println( b.value map denotationValue )
         }
 
-        case Left(v) => println{ s"oh, an error: ${v}" }
+        case Left(v)  => println{ s"oh, an error: ${v}" }
       }
     }
   }
