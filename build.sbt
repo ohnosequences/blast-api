@@ -14,7 +14,6 @@ libraryDependencies ++= Seq(
   "com.github.tototoshi"  %% "scala-csv"    % "1.2.2" % Test
 )
 
-// scalacOptions ++= Seq("-Xlog-implicits")
 incOptions := incOptions.value.withNameHashing(false)
 
 bucketSuffix  := "era7.com"
