@@ -1,0 +1,4 @@
+This release includes
+
+- #12 updating to better-files
+- #11 cleaning code a bit and reestablishing tests
