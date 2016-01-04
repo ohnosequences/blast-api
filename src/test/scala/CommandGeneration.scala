@@ -1,6 +1,6 @@
 package ohnosequences.blast.test
 
-import ohnosequences.blast._, api._, data._, outputFields._
+import ohnosequences.blast._, api._, outputFields._
 import ohnosequences.cosas._, types._, klists._, records._
 import better.files._
 
