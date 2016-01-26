@@ -12,14 +12,13 @@ class OutputFieldsSpecification extends org.scalatest.FunSuite {
 
   case object outRec extends BlastOutputRecord(qseqid :×: sseqid :×: |[AnyOutputField])
 
-  case object exprType extends BlastExpressionType(blastn)(outRec)
-
-  val stmt = BlastExpression(exprType)(
-    argumentValues = blastn.arguments(
+  val stmt = blastn(
+    outRec,
+    argumentValues =
       db(dbFile)       ::
       query(queryFile) ::
-      out(outFile)     :: *[AnyDenotation]
-    ),
-    optionValues = blastn.defaults update (num_threads(24) :: *[AnyDenotation])
+      out(outFile)     ::
+      *[AnyDenotation],
+    optionValues = blastn.defaults update (num_threads(24) :: *[AnyDenotation]) value
   )
 }

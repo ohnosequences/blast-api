@@ -12,22 +12,24 @@ class CommandGeneration extends org.scalatest.FunSuite {
 
   case object outRec extends BlastOutputRecord(qseqid :×: sseqid :×: |[AnyOutputField])
 
-  case object exprType extends BlastExpressionType(blastn)(outRec)
-
-  val stmt = BlastExpression(exprType)(
-    argumentValues = blastn.arguments(
+  val stmt = blastn(
+    outRec,
+    argumentValues =
       db(dbFile)       ::
       query(queryFile) ::
-      out(outFile)     :: *[AnyDenotation]
-    ),
-    optionValues = blastn.defaults
-    )
+      out(outFile)     ::
+      *[AnyDenotation],
+    optionValues =
+      blastn.defaults.value
+  )
 
   test("command generation") {
 
     assert {
-      stmt.cmd === Seq("blastn", "-db", "/tmp/buh", "-query", "/tmp/query", "-out", "/tmp/blastout") ++
-        blastn.defaultsAsSeq ++ Seq("-outfmt", "10 qseqid sseqid")
+      stmt.toSeq ===
+        Seq("blastn", "-db", "/tmp/buh", "-query", "/tmp/query", "-out", "/tmp/blastout") ++
+        blastn.defaults.value.toSeq ++
+        Seq("-outfmt", "10 qseqid sseqid")
     }
   }
 }
