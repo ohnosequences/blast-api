@@ -77,52 +77,6 @@ case object api {
   type isValidOutputRecordFor[R <: AnyBlastOutputRecord, C <: AnyBlastCommand] =
     R#Keys#Types#AllTypes isSubunionOf C#ValidOutputFields#Types#AllTypes
 
-  // trait AnyOutputFields {
-  //
-  //   type Command <: AnyBlastCommand
-  //   val  command: Command
-  //
-  //   type Fields <: AnyKList.withBound[AnyOutputField]
-  //   val  fields: Fields
-  //
-  //   def toSeq: Seq[String] = {
-  //     // '10' is the code for csv output
-  //     val fieldsSeq: Seq[String] = "10" :: fields.asList.map{ _.label }
-  //
-  //     Seq("-outfmt", fieldsSeq.mkString(" "))
-  //   }
-  // }
-  //
-  // case object AnyOutputFields {
-  //
-  //   type For[C <: AnyBlastCommand] = AnyOutputFields { type Command = C }
-  // }
-  //
-  // class OutputFields[
-  //   C <: AnyBlastCommand,
-  //   Fs <: AnyKList.withBound[AnyOutputField]
-  // ](val command: C)(val fields: Fs)(implicit
-  //   nodup: noDuplicates isTrueOn Fs,
-  //   valid: Fs#AllTypes isSubunionOf C#ValidOutputFields#AllTypes
-  // ) extends AnyOutputFields {
-  //
-  //   type Command = C
-  //   type Fields = Fs
-  // }
-
-  // class ValidOutputRecordFor[BC <: AnyBlastCommand] extends PredicateOver[AnyBlastOutputFields]
-  //
-  // case object ValidOutputRecordFor {
-  //
-  //   implicit def default[
-  //     BC <: AnyBlastCommand,
-  //     Fs <: AnyBlastOutputFields
-  //   ](implicit
-  //
-  //   ): ValidOutputRecordFor[BC] isTrueOn O =
-  //     App1 { _: O => () }
-  // }
-
   /*
     Given a BLAST command, we can choose an output record made out of output fields. Each command specifies through its `OutputFields` command which fields can be used for it; this is checked when you construct a `BlastExpression`.
 
