@@ -12,7 +12,6 @@ case object api {
   type AnyBlastOptionsRecord = AnyRecordType { type Keys <: AnyProductType { type TypesBound <: AnyBlastOption } }
 
   sealed trait AnyBlastCommand {
-    type Self = this.type
 
     /* This label **should** match the **name** of the command */
     lazy val name: Seq[String] = Seq(this.toString)
@@ -27,13 +26,15 @@ case object api {
     val defaults: Options := OptionsVals
 
     /* valid output fields for this command */
-    // type ValidOutputFields <: AnyBlastOutputFields
+    type ValidOutputFields <: AnyBlastOutputFields
 
-    def apply[OutRec <: AnyBlastOutputRecord](
-      outputRecord: OutRec,
+    def apply[R <: AnyBlastOutputRecord](
+      outputRecord: R,
       argumentValues: ArgumentsVals,
       optionValues: OptionsVals
-    ): BlastExpression[Self, OutRec]
+    )(implicit
+      valid: R isValidOutputRecordFor this.type
+    ): BlastExpression[this.type, R]
   }
 
   sealed trait AnyBlastOption extends AnyType {
@@ -61,18 +62,67 @@ case object api {
   type AnyBlastOutputRecord = AnyRecordType { type Keys <: AnyBlastOutputFields }
   type BlastOutputRecord[OFs <: AnyBlastOutputFields] = RecordType[OFs]
 
-
-  implicit def blastOutputRecordOps[OR <: AnyBlastOutputRecord](outputRec: OR): BlastOutputRecordOps[OR] =
-    BlastOutputRecordOps(outputRec)
+  implicit def blastOutputRecordOps[OR <: AnyBlastOutputRecord](outputRec: OR):
+    BlastOutputRecordOps[OR] =
+    BlastOutputRecordOps[OR](outputRec)
   case class BlastOutputRecordOps[OR <: AnyBlastOutputRecord](val outputRec: OR) extends AnyVal {
 
     def toSeq: Seq[String] = {
       // '10' is the code for csv output
-      val fields: Seq[String] = "10" :: outputRec.keys.types.asList.map{ _.label }
-
-      Seq("-outfmt", fields.mkString(" "))
+      val fieldsSeq: Seq[String] = "10" :: outputRec.keys.types.asList.map{ _.label }
+      Seq("-outfmt", fieldsSeq.mkString(" "))
     }
   }
+
+  type isValidOutputRecordFor[R <: AnyBlastOutputRecord, C <: AnyBlastCommand] =
+    R#Keys#Types#AllTypes isSubunionOf C#ValidOutputFields#Types#AllTypes
+
+  // trait AnyOutputFields {
+  //
+  //   type Command <: AnyBlastCommand
+  //   val  command: Command
+  //
+  //   type Fields <: AnyKList.withBound[AnyOutputField]
+  //   val  fields: Fields
+  //
+  //   def toSeq: Seq[String] = {
+  //     // '10' is the code for csv output
+  //     val fieldsSeq: Seq[String] = "10" :: fields.asList.map{ _.label }
+  //
+  //     Seq("-outfmt", fieldsSeq.mkString(" "))
+  //   }
+  // }
+  //
+  // case object AnyOutputFields {
+  //
+  //   type For[C <: AnyBlastCommand] = AnyOutputFields { type Command = C }
+  // }
+  //
+  // class OutputFields[
+  //   C <: AnyBlastCommand,
+  //   Fs <: AnyKList.withBound[AnyOutputField]
+  // ](val command: C)(val fields: Fs)(implicit
+  //   nodup: noDuplicates isTrueOn Fs,
+  //   valid: Fs#AllTypes isSubunionOf C#ValidOutputFields#AllTypes
+  // ) extends AnyOutputFields {
+  //
+  //   type Command = C
+  //   type Fields = Fs
+  // }
+
+  // class ValidOutputRecordFor[BC <: AnyBlastCommand] extends PredicateOver[AnyBlastOutputFields]
+  //
+  // case object ValidOutputRecordFor {
+  //
+  //   implicit def default[
+  //     BC <: AnyBlastCommand,
+  //     Fs <: AnyBlastOutputFields
+  //   ](implicit
+  //
+  //   ): ValidOutputRecordFor[BC] isTrueOn O =
+  //     App1 { _: O => () }
+  // }
+
   /*
     Given a BLAST command, we can choose an output record made out of output fields. Each command specifies through its `OutputFields` command which fields can be used for it; this is checked when you construct a `BlastExpression`.
 
@@ -87,19 +137,6 @@ case object api {
     type Raw = V
     lazy val label: String = toString
   }
-
-  // class ValidOutputRecordFor[BC <: AnyBlastCommand] extends PredicateOver[AnyOutputField]
-  //
-  // case object ValidOutputRecordFor {
-  //
-  //   implicit def trueIfOneOutputFields[
-  //     BC <: AnyBlastCommand,
-  //     O <: AnyOutputField
-  //   ](implicit
-  //     proof: O isOneOf BC#OutputFields#Keys#Types#AllTypes
-  //   ): ValidOutputRecordFor[BC] isTrueOn O =
-  //     App1 { _: O => () }
-  // }
 
   /*
     ### `Seq[String]` Command generation
@@ -144,13 +181,11 @@ case object api {
     type OutputRecord <: AnyBlastOutputRecord
     val  outputRecord: OutputRecord
 
-    // TODO fix this!
-    // val validRecord: OutputRecord#Keys CheckForAll ValidOutputRecordFor[Command]
-
-
     val argumentValues: Command#ArgumentsVals
     val optionValues: Command#OptionsVals
 
+    // implicitly:
+    val recordIsValid: OutputRecord isValidOutputRecordFor Command
     val argValsToSeq: BlastOptionsToSeq[Command#ArgumentsVals]
     val optValsToSeq: BlastOptionsToSeq[Command#OptionsVals]
 
@@ -162,19 +197,20 @@ case object api {
   }
 
   case class BlastExpression[
-    BC <: AnyBlastCommand,
-    OR <: AnyBlastOutputRecord
-  ](val command: BC
-  )(val outputRecord: OR
-  )(val argumentValues: BC#ArgumentsVals,
-    val optionValues: BC#OptionsVals
+    C <: AnyBlastCommand,
+    R <: AnyBlastOutputRecord
+  ](val command: C
+  )(val outputRecord: R,
+    val argumentValues: C#ArgumentsVals,
+    val optionValues: C#OptionsVals
   )(implicit
-    val argValsToSeq: BlastOptionsToSeq[BC#ArgumentsVals],
-    val optValsToSeq: BlastOptionsToSeq[BC#OptionsVals]
+    val recordIsValid: R isValidOutputRecordFor C,
+    val argValsToSeq: BlastOptionsToSeq[C#ArgumentsVals],
+    val optValsToSeq: BlastOptionsToSeq[C#OptionsVals]
   ) extends AnyBlastExpression {
 
-    type Command = BC
-    type OutputRecord = OR
+    type Command = C
+    type OutputRecord = R
   }
 
 
@@ -204,21 +240,19 @@ case object api {
 
     import ohnosequences.blast.api.outputFields._
 
-    type OutputFields = outputFields.type
-    case object outputFields extends RecordType(
-      qseqid    :×:
-      sseqid    :×:
-      sgi       :×:
-      qstart    :×:
-      qend      :×:
-      sstart    :×:
-      send      :×:
-      qlen      :×:
-      slen      :×:
-      bitscore  :×:
-      score     :×:
+    type ValidOutputFields =
+      qseqid.type    :×:
+      sseqid.type    :×:
+      sgi.type       :×:
+      qstart.type    :×:
+      qend.type      :×:
+      sstart.type    :×:
+      send.type      :×:
+      qlen.type      :×:
+      slen.type      :×:
+      bitscore.type  :×:
+      score.type     :×:
       |[AnyOutputField]
-    )
 
     type ArgumentsVals =
       (db.type    := db.Raw)    ::
@@ -258,11 +292,13 @@ case object api {
     case object blastnShort     extends Task( "blastn-short" )
     case object rmblastn        extends Task( "rmblastn" )
 
-    def apply[OutRec <: AnyBlastOutputRecord](
-      outputRecord: OutRec,
+    def apply[R <: AnyBlastOutputRecord](
+      outputRecord: R,
       argumentValues: ArgumentsVals,
       optionValues: OptionsVals
-    ): BlastExpression[Self, OutRec] = BlastExpression(this)(outputRecord)(argumentValues, optionValues)
+    )(implicit
+      valid: R isValidOutputRecordFor this.type
+    ): BlastExpression[this.type, R] = BlastExpression(this)(outputRecord, argumentValues, optionValues)
   }
 
   type blastp = blastp.type
@@ -273,6 +309,8 @@ case object api {
 
     case object options extends RecordType(num_threads :×: |[AnyBlastOption])
     type Options = options.type
+
+    // TODO: add ValidOutputFields
 
     type ArgumentsVals =
       (db.type    := db.Raw)    ::
@@ -294,11 +332,13 @@ case object api {
     case object blastpFast  extends Task( "blastp-fast" )
     case object blastpShort extends Task( "blastp-short" )
 
-    def apply[OutRec <: AnyBlastOutputRecord](
-      outputRecord: OutRec,
+    def apply[R <: AnyBlastOutputRecord](
+      outputRecord: R,
       argumentValues: ArgumentsVals,
       optionValues: OptionsVals
-    ): BlastExpression[Self, OutRec] = BlastExpression(this)(outputRecord)(argumentValues, optionValues)
+    )(implicit
+      valid: R isValidOutputRecordFor this.type
+    ): BlastExpression[this.type, R] = BlastExpression(this)(outputRecord, argumentValues, optionValues)
   }
 
   type blastx   = blastx.type
@@ -309,6 +349,8 @@ case object api {
 
     case object options extends RecordType(num_threads :×: |[AnyBlastOption])
     type Options = options.type
+
+    // TODO: add ValidOutputFields
 
     type ArgumentsVals =
       (db.type    := db.Raw)    ::
@@ -330,11 +372,13 @@ case object api {
     case object blastx     extends Task( "blastx" )
     case object blastxFast extends Task( "blastx-fast" )
 
-    def apply[OutRec <: AnyBlastOutputRecord](
-      outputRecord: OutRec,
+    def apply[R <: AnyBlastOutputRecord](
+      outputRecord: R,
       argumentValues: ArgumentsVals,
       optionValues: OptionsVals
-    ): BlastExpression[Self, OutRec] = BlastExpression(this)(outputRecord)(argumentValues, optionValues)
+    )(implicit
+      valid: R isValidOutputRecordFor this.type
+    ): BlastExpression[this.type, R] = BlastExpression(this)(outputRecord, argumentValues, optionValues)
   }
 
   type tblastn = tblastn.type
@@ -345,6 +389,8 @@ case object api {
 
     case object options extends RecordType(num_threads :×: |[AnyBlastOption])
     type Options = options.type
+
+    // TODO: add ValidOutputFields
 
     type ArgumentsVals =
       (db.type    := db.Raw)    ::
@@ -366,11 +412,13 @@ case object api {
     case object tblastn     extends Task( "tblastn" )
     case object tblastnFast extends Task( "tblastn-fast" )
 
-    def apply[OutRec <: AnyBlastOutputRecord](
-      outputRecord: OutRec,
+    def apply[R <: AnyBlastOutputRecord](
+      outputRecord: R,
       argumentValues: ArgumentsVals,
       optionValues: OptionsVals
-    ): BlastExpression[Self, OutRec] = BlastExpression(this)(outputRecord)(argumentValues, optionValues)
+    )(implicit
+      valid: R isValidOutputRecordFor this.type
+    ): BlastExpression[this.type, R] = BlastExpression(this)(outputRecord, argumentValues, optionValues)
   }
 
   type tblastx = tblastx.type
@@ -381,6 +429,8 @@ case object api {
 
     case object options extends RecordType(num_threads :×: |[AnyBlastOption])
     type Options = options.type
+
+    // TODO: add ValidOutputFields
 
     type ArgumentsVals =
       (db.type    := db.Raw)    ::
@@ -397,11 +447,13 @@ case object api {
       *[AnyDenotation]
     )
 
-    def apply[OutRec <: AnyBlastOutputRecord](
-      outputRecord: OutRec,
+    def apply[R <: AnyBlastOutputRecord](
+      outputRecord: R,
       argumentValues: ArgumentsVals,
       optionValues: OptionsVals
-    ): BlastExpression[Self, OutRec] = BlastExpression(this)(outputRecord)(argumentValues, optionValues)
+    )(implicit
+      valid: R isValidOutputRecordFor this.type
+    ): BlastExpression[this.type, R] = BlastExpression(this)(outputRecord, argumentValues, optionValues)
   }
 
   type makeblastdb = makeblastdb.type
@@ -412,6 +464,8 @@ case object api {
 
     case object options extends RecordType(title :×: |[AnyBlastOption])
     type Options = options.type
+
+    // TODO: add ValidOutputFields
 
     type ArgumentsVals =
       (in.type         := in.Raw)    ::
@@ -428,11 +482,13 @@ case object api {
       *[AnyDenotation]
     )
 
-    def apply[OutRec <: AnyBlastOutputRecord](
-      outputRecord: OutRec,
+    def apply[R <: AnyBlastOutputRecord](
+      outputRecord: R,
       argumentValues: ArgumentsVals,
       optionValues: OptionsVals
-    ): BlastExpression[Self, OutRec] = BlastExpression(this)(outputRecord)(argumentValues, optionValues)
+    )(implicit
+      valid: R isValidOutputRecordFor this.type
+    ): BlastExpression[this.type, R] = BlastExpression(this)(outputRecord, argumentValues, optionValues)
   }
 
   /*
