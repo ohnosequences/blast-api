@@ -41,7 +41,7 @@ case object blastn extends AnyBlastCommand {
   val defaults = options (
     num_threads(1)          ::
     task(blastn)            ::
-    evalue(10: Double)  ::
+    evalue(10D)             ::
     max_target_seqs(100)    ::
     strand(Strands.both)    ::
     word_size(4)            ::
