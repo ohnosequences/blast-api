@@ -36,12 +36,14 @@ case object tblastn extends AnyBlastCommand {
     (num_threads.type := num_threads.Raw) ::
     *[AnyDenotation]
 
-  val defaults = options(
+  val defaults: Options := OptionsVals = options (
     num_threads(1) ::
     *[AnyDenotation]
   )
 
-  case object task extends BlastOption[Task](t => t.name)
+  case object task extends BlastOption[Task](t => t.name) {
+    def apply(t: Task): this.type := Task = this := t
+  }
   sealed abstract class Task(val name: String)
   case object tblastn     extends Task( "tblastn" )
   case object tblastnFast extends Task( "tblastn-fast" )

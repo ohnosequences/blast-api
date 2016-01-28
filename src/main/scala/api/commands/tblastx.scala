@@ -36,7 +36,7 @@ case object tblastx extends AnyBlastCommand {
     (num_threads.type := num_threads.Raw) ::
     *[AnyDenotation]
 
-  val defaults = options(
+  val defaults: Options := OptionsVals = options (
     num_threads(1) ::
     *[AnyDenotation]
   )

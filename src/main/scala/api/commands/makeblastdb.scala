@@ -23,7 +23,7 @@ case object makeblastdb extends AnyBlastCommand {
     (title.type := title.Raw) ::
     *[AnyDenotation]
 
-  val defaults = options (
+  val defaults: Options := OptionsVals = options (
     title("") ::
     *[AnyDenotation]
   )
