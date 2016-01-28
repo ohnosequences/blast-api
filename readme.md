@@ -14,5 +14,7 @@ For documentation see the code annotations in [docs/](docs/src/main/scala/api).
 #### SBT dependency
 
 ```scala
-"ohnosequences" %% "blast-api" % "<version>"
+resolvers += "Era7 maven releases" at "https://s3-eu-west-1.amazonaws.com/releases.era7.com"
+
+libraryDependencies += "ohnosequences" %% "blast-api" % "<version>"
 ```
