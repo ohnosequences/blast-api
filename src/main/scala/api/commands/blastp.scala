@@ -1,6 +1,7 @@
 package ohnosequences.blast.api
 
 import ohnosequences.cosas._, types._, records._, klists._
+import ohnosequences.blast.api.outputFields._
 
 // type blastp = blastp.type
 case object blastp extends AnyBlastCommand {

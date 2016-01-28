@@ -11,7 +11,7 @@ case object makeblastdb extends AnyBlastCommand {
   case object options extends RecordType(title :×: |[AnyBlastOption])
   type Options = options.type
 
-  // TODO: add ValidOutputFields
+  type ValidOutputFields = |[AnyOutputField]
 
   type ArgumentsVals =
     (in.type         := in.Raw)    ::
@@ -28,11 +28,10 @@ case object makeblastdb extends AnyBlastCommand {
     *[AnyDenotation]
   )
 
-  def apply[R <: AnyBlastOutputRecord](
-    outputRecord: R,
+  def apply(
     argumentValues: ArgumentsVals,
     optionValues: OptionsVals
   )(implicit
-    valid: R isValidOutputRecordFor this.type
-  ): BlastExpression[this.type, R] = BlastExpression(this)(outputRecord, argumentValues, optionValues)
+    valid: BlastOutputRecord[|[AnyOutputField]] isValidOutputRecordFor this.type
+  ): BlastExpression[this.type, BlastOutputRecord[|[AnyOutputField]]] = BlastExpression(this)(new BlastOutputRecord(|[AnyOutputField]), argumentValues, optionValues)
 }

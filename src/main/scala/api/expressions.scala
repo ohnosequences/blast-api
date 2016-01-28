@@ -26,13 +26,13 @@ trait AnyBlastCommand {
   /* valid output fields for this command */
   type ValidOutputFields <: AnyBlastOutputFields
 
-  def apply[R <: AnyBlastOutputRecord](
-    outputRecord: R,
-    argumentValues: ArgumentsVals,
-    optionValues: OptionsVals
-  )(implicit
-    valid: R isValidOutputRecordFor this.type
-  ): BlastExpression[this.type, R]
+  // def apply[R <: AnyBlastOutputRecord](
+  //   outputRecord: R,
+  //   argumentValues: ArgumentsVals,
+  //   optionValues: OptionsVals
+  // )(implicit
+  //   valid: R isValidOutputRecordFor this.type
+  // ): BlastExpression[this.type, R]
 }
 
 /*

@@ -1,6 +1,7 @@
 package ohnosequences.blast.api
 
 import ohnosequences.cosas._, types._, records._, klists._
+import ohnosequences.blast.api.outputFields._
 
 // type tblastn = tblastn.type
 case object tblastn extends AnyBlastCommand {
@@ -24,7 +25,7 @@ case object tblastn extends AnyBlastCommand {
     bitscore.type  :×:
     score.type     :×:
     |[AnyOutputField]
-    
+
   type ArgumentsVals =
     (db.type    := db.Raw)    ::
     (query.type := query.Raw) ::
