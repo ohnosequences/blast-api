@@ -1,0 +1,6 @@
+- renamed to `blast-api`
+- made possible to construct BLAST expressions without implicits
+- converting expressions to `Seq[String]` now also doesn't require any implicits
+- fixed an issue with the `mkblastdb` output format option
+
+See the list of issues related to the [`v0.4.0` milestone](https://github.com/ohnosequences/blast/issues?q=milestone%3Av0.4.0).
