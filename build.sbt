@@ -1,6 +1,6 @@
 Nice.scalaProject
 
-name          := "blast"
+name          := "blast-api"
 organization  := "ohnosequences"
 description   := "A typesafe Scala BLAST API"
 
