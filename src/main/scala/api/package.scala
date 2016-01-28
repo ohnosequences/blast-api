@@ -47,8 +47,11 @@ case class BlastOptionsOps[L <: AnyKList.withBound[AnyDenotation]](val l: L) ext
 case class BlastOutputRecordOps[R <: api.AnyBlastOutputRecord](val rec: R) extends AnyVal {
 
   def toSeq: Seq[String] = {
-    // '10' is the code for csv output
-    val fieldsSeq: Seq[String] = "10" :: rec.keys.types.asList.map{ _.label }
-    Seq("-outfmt", fieldsSeq.mkString(" "))
+    val fieldsSeq: Seq[String] = rec.keys.types.asList.map{ _.label }
+    if (fieldsSeq.isEmpty) Seq()
+    else {
+      // NOTE: '10' is the code for csv output
+      Seq("-outfmt", ("10" +: fieldsSeq).mkString(" "))
+    }
   }
 }
