@@ -43,14 +43,13 @@ trait AnyBlastExpression {
   type Command <: AnyBlastCommand
   val  command: Command
 
-  type OutputRecord <: AnyBlastOutputRecord
+  type OutputRecord <: AnyBlastOutputRecord.For[Command]
   val  outputRecord: OutputRecord
 
   val argumentValues: Command#ArgumentsVals
   val optionValues: Command#OptionsVals
 
   // implicitly:
-  val recordIsValid: OutputRecord isValidOutputRecordFor Command
   val argValsToSeq: BlastOptionsToSeq[Command#ArgumentsVals]
   val optValsToSeq: BlastOptionsToSeq[Command#OptionsVals]
 
@@ -60,18 +59,17 @@ trait AnyBlastExpression {
     command.name ++
     argValsToSeq(argumentValues) ++
     optValsToSeq(optionValues) ++
-    blastOutputRecordToSeq(outputRecord)
+    outputRecord.toSeq
 }
 
 case class BlastExpression[
   C <: AnyBlastCommand,
-  R <: AnyBlastOutputRecord
+  R <: AnyBlastOutputRecord.For[C]
 ](val command: C
 )(val outputRecord: R,
   val argumentValues: C#ArgumentsVals,
   val optionValues: C#OptionsVals
 )(implicit
-  val recordIsValid: R isValidOutputRecordFor C,
   val argValsToSeq: BlastOptionsToSeq[C#ArgumentsVals],
   val optValsToSeq: BlastOptionsToSeq[C#OptionsVals]
 ) extends AnyBlastExpression {

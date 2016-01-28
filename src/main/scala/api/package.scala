@@ -5,7 +5,7 @@ import better.files._
 
 package object api {
 
-  type AnyBlastOptionsRecord = AnyRecordType { type Keys <: AnyProductType { type TypesBound <: AnyBlastOption } }
+  type AnyBlastOptionsRecord = AnyRecordType { type Keys <: AnyProductType { type Types <: AnyKList.Of[AnyBlastOption] } }
 
   implicit def blastOptionsOps[L <: AnyKList.withBound[AnyDenotation]](l: L):
     BlastOptionsOps[L] =
@@ -14,21 +14,41 @@ package object api {
   /*
     Given a BLAST command, we can choose an output record made out of output fields. Each command specifies through its `ValidOutputFields` which fields can be used for it; this is checked when you construct a `BlastExpression`.
   */
-  type AnyBlastOutputFields = AnyProductType { type TypesBound <: AnyOutputField }
+  type AnyBlastOutputFields = AnyProductType { type Types <: AnyKList.Of[AnyOutputField] }
   type AnyBlastOutputRecord = AnyRecordType { type Keys <: AnyBlastOutputFields }
   type BlastOutputRecord[OFs <: AnyBlastOutputFields] = RecordType[OFs]
 
-  type isValidOutputRecordFor[R <: AnyBlastOutputRecord, C <: AnyBlastCommand] =
-    R#Keys#Types#AllTypes isSubunionOf C#ValidOutputFields#Types#AllTypes
+  case object AnyBlastOutputRecord {
 
-  def blastOutputRecordToSeq[R <: AnyBlastOutputRecord](rec: R): Seq[String] = {
-    // '10' is the code for csv output
-    val fieldsSeq: Seq[String] = "10" :: rec.keys.types.asList.map{ _.label }
-    Seq("-outfmt", fieldsSeq.mkString(" "))
+    /* expressing that the record has only those keys that are in the command's ValidOutputFields product */
+    type For[C <: AnyBlastCommand] =
+      AnyBlastOutputRecord {
+        type Keys <: AnyBlastOutputFields {
+          type Types <: AnyKList {
+            type Bound <: AnyOutputField
+            type Union <: C#ValidOutputFields#Types#Union
+          }
+        }
+      }
   }
+
+  implicit def blastOutputRecordOps[R <: AnyBlastOutputRecord](r: R):
+    BlastOutputRecordOps[R] =
+    BlastOutputRecordOps[R](r)
 }
+
 
 case class BlastOptionsOps[L <: AnyKList.withBound[AnyDenotation]](val l: L) extends AnyVal {
 
   def toSeq(implicit opsToSeq: api.BlastOptionsToSeq[L]): Seq[String] = opsToSeq(l)
+}
+
+
+case class BlastOutputRecordOps[R <: api.AnyBlastOutputRecord](val rec: R) extends AnyVal {
+
+  def toSeq: Seq[String] = {
+    // '10' is the code for csv output
+    val fieldsSeq: Seq[String] = "10" :: rec.keys.types.asList.map{ _.label }
+    Seq("-outfmt", fieldsSeq.mkString(" "))
+  }
 }

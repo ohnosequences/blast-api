@@ -31,7 +31,6 @@ case object makeblastdb extends AnyBlastCommand {
   def apply(
     argumentValues: ArgumentsVals,
     optionValues: OptionsVals
-  )(implicit
-    valid: BlastOutputRecord[|[AnyOutputField]] isValidOutputRecordFor this.type
-  ): BlastExpression[this.type, BlastOutputRecord[|[AnyOutputField]]] = BlastExpression(this)(new BlastOutputRecord(|[AnyOutputField]), argumentValues, optionValues)
+  ): BlastExpression[this.type, BlastOutputRecord[|[AnyOutputField]]] =
+    BlastExpression(this)(new BlastOutputRecord(|[AnyOutputField]), argumentValues, optionValues)
 }

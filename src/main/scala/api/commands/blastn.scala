@@ -75,11 +75,9 @@ case object blastn extends AnyBlastCommand {
   case object blastnShort     extends Task( "blastn-short" )
   case object rmblastn        extends Task( "rmblastn" )
 
-  def apply[R <: AnyBlastOutputRecord](
+  def apply[R <: AnyBlastOutputRecord.For[this.type]](
     outputRecord: R,
     argumentValues: ArgumentsVals,
     optionValues: OptionsVals
-  )(implicit
-    valid: R isValidOutputRecordFor this.type
   ): BlastExpression[this.type, R] = BlastExpression(this)(outputRecord, argumentValues, optionValues)
 }
