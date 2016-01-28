@@ -11,8 +11,20 @@ case object tblastx extends AnyBlastCommand {
   case object options extends RecordType(num_threads :×: |[AnyBlastOption])
   type Options = options.type
 
-  // TODO: add ValidOutputFields
-
+  type ValidOutputFields =
+    qseqid.type    :×:
+    sseqid.type    :×:
+    sgi.type       :×:
+    qstart.type    :×:
+    qend.type      :×:
+    sstart.type    :×:
+    send.type      :×:
+    qlen.type      :×:
+    slen.type      :×:
+    bitscore.type  :×:
+    score.type     :×:
+    |[AnyOutputField]
+    
   type ArgumentsVals =
     (db.type    := db.Raw)    ::
     (query.type := query.Raw) ::
