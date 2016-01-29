@@ -11,6 +11,7 @@ case object tblastx extends AnyBlastCommand {
   case object arguments extends RecordType(db :×: query :×: out :×: |[AnyBlastOption])
   type Arguments = arguments.type
 
+  // TODO: figure out the full list of options here
   case object options extends RecordType(num_threads :×: |[AnyBlastOption])
   type Options = options.type
 
@@ -38,7 +39,7 @@ case object tblastx extends AnyBlastCommand {
     (num_threads.type := num_threads.Raw) ::
     *[AnyDenotation]
 
-  val defaults = options(
+  val defaults: Options := OptionsVals = options (
     num_threads(1) ::
     *[AnyDenotation]
   )

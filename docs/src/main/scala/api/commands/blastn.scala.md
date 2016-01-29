@@ -3,8 +3,8 @@
 package ohnosequences.blast.api
 
 import ohnosequences.cosas._, types._, records._, klists._
+import ohnosequences.blast.api.outputFields._
 
-// type blastn = blastn.type
 case object blastn extends AnyBlastCommand {
 
   type Arguments = arguments.type
@@ -40,19 +40,17 @@ case object blastn extends AnyBlastCommand {
     (ungapped.type        := ungapped.Raw)        ::
     *[AnyDenotation]
 
-  val defaults = options (
-    num_threads(1)          ::
-    task(blastn)            ::
-    evalue(10D)             ::
-    max_target_seqs(100)    ::
-    strand(Strands.both)    ::
-    word_size(4)            ::
-    show_gis(false)         ::
-    ungapped(false)         ::
+  val defaults: Options := OptionsVals = options (
+    num_threads(1)       ::
+    task(blastn: Task)   ::
+    evalue(10D)          ::
+    max_target_seqs(100) ::
+    strand(Strands.both) ::
+    word_size(4)         ::
+    show_gis(false)      ::
+    ungapped(false)      ::
     *[AnyDenotation]
   )
-
-  import ohnosequences.blast.api.outputFields._
 
   type ValidOutputFields =
     qseqid.type    :×:
@@ -69,7 +67,9 @@ case object blastn extends AnyBlastCommand {
     |[AnyOutputField]
 
   // task depends on each command, that's why it is here.
-  case object task extends BlastOption[Task](t => t.name)
+  case object task extends BlastOption[Task](t => t.name) {
+    def apply(t: Task): this.type := Task = this := t
+  }
   sealed abstract class Task(val name: String)
   case object megablast       extends Task( "megablast" )
   case object dcMegablast     extends Task( "dc-megablast" )
