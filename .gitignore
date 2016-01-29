@@ -19,3 +19,5 @@ data/out/
 .atom*
 .ensime*
 .idea*
+
+.imdone*
