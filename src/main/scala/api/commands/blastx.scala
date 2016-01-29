@@ -9,6 +9,7 @@ case object blastx extends AnyBlastCommand {
   case object arguments extends RecordType(db :×: query :×: out :×: |[AnyBlastOption])
   type Arguments = arguments.type
 
+  // TODO: figure out the full list of options here
   case object options extends RecordType(num_threads :×: |[AnyBlastOption])
   type Options = options.type
 

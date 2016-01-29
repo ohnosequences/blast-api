@@ -8,6 +8,7 @@ case object makeblastdb extends AnyBlastCommand {
   case object arguments extends RecordType(in :×: input_type :×: dbtype :×: |[AnyBlastOption])
   type Arguments = arguments.type
 
+  // TODO: figure out the full list of options here
   case object options extends RecordType(title :×: |[AnyBlastOption])
   type Options = options.type
 

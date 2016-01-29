@@ -11,6 +11,12 @@ This library provides a typesafe API for the [BLAST](https://en.wikipedia.org/wi
 
 For documentation see the code annotations in [docs/](docs/src/main/scala/api).
 
+
+#### Current state
+
+At the moment the only command that is more or less full-featured is [blastn](docs/src/main/scala/api/commands/blastn.scala.md). The others are in progress.
+
+
 #### SBT dependency
 
 ```scala

@@ -3,12 +3,12 @@ package ohnosequences.blast.api
 import ohnosequences.cosas._, types._, records._, klists._
 import ohnosequences.blast.api.outputFields._
 
-// type blastp = blastp.type
 case object blastp extends AnyBlastCommand {
 
   case object arguments extends RecordType(db :×: query :×: out :×: |[AnyBlastOption])
   type Arguments = arguments.type
 
+  // TODO: issue:10 figure out the full list of options here
   case object options extends RecordType(num_threads :×: |[AnyBlastOption])
   type Options = options.type
 
