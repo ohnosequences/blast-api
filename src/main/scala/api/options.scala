@@ -57,8 +57,14 @@ case object evalue          extends BlastOption[Double](n => n.toString)
 case object max_target_seqs extends BlastOption[Int](n => n.toString)
 case object show_gis        extends BlastOption[Boolean](t => "")
 
-case object word_size extends BlastOption[Int](n => if( n < 4 ) 4.toString else n.toString )
+case object word_size extends BlastOption[Int](n => if(n < 4) 4.toString else n.toString)
+/* penalty needs to be ≤ 0 */
+case object penalty extends BlastOption[Int](n => if(n > 0) 0.toString else n.toString)
+/* reward needs to be ≥ 0 */
+case object reward extends BlastOption[Int](n => if(n < 0) 0.toString else n.toString)
 case object ungapped extends BlastOption[Boolean](t => "")
+
+case object num_alignments extends BlastOption[Int](n => if(n < 0) 250.toString else n.toString)
 
 case object strand extends BlastOption[Strands](_.toString)
 

@@ -14,10 +14,13 @@ case object blastn extends AnyBlastCommand {
     task            :×:
     evalue          :×:
     max_target_seqs :×:
+    num_alignments  :×:
     strand          :×:
     word_size       :×:
     show_gis        :×:
     ungapped        :×:
+    penalty         :×:
+    reward          :×:
     |[AnyBlastOption]
   )
 
@@ -32,21 +35,27 @@ case object blastn extends AnyBlastCommand {
     (task.type            := task.Raw)            ::
     (evalue.type          := evalue.Raw)          ::
     (max_target_seqs.type := max_target_seqs.Raw) ::
+    (num_alignments.type  := num_alignments.Raw)  ::
     (strand.type          := strand.Raw)          ::
     (word_size.type       := word_size.Raw)       ::
     (show_gis.type        := show_gis.Raw)        ::
     (ungapped.type        := ungapped.Raw)        ::
+    (penalty.type         := penalty.Raw)         ::
+    (reward.type          := reward.Raw)          ::
     *[AnyDenotation]
 
   val defaults: Options := OptionsVals = options (
-    num_threads(1)       ::
-    task(blastn: Task)   ::
-    evalue(10D)          ::
-    max_target_seqs(100) ::
-    strand(Strands.both) ::
-    word_size(4)         ::
-    show_gis(false)      ::
-    ungapped(false)      ::
+    num_threads(1)        ::
+    task(blastn: Task)    ::
+    evalue(10D)           ::
+    max_target_seqs(100)  ::
+    num_alignments(250)   ::
+    strand(Strands.both)  ::
+    word_size(4)          ::
+    show_gis(false)       ::
+    ungapped(false)       ::
+    penalty(0)            ::
+    reward(0)             ::
     *[AnyDenotation]
   )
 
