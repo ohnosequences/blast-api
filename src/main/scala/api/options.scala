@@ -88,7 +88,6 @@ case object DBInputType {
   case object fasta     extends DBInputType
 }
 
-
 case object dbtype extends BlastOption[BlastDBType](t => t.toString)
 
 sealed trait BlastDBType
@@ -96,3 +95,5 @@ case object BlastDBType {
   case object nucl extends BlastDBType
   case object prot extends BlastDBType
 }
+
+case object parse_seqids extends BlastOption[Boolean](_ => "")

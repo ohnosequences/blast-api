@@ -9,23 +9,25 @@ case object makeblastdb extends AnyBlastCommand {
   type Arguments = arguments.type
 
   // TODO: figure out the full list of options here
-  case object options extends RecordType(title :×: |[AnyBlastOption])
+  case object options extends RecordType(title :×: parse_seqids :×: |[AnyBlastOption])
   type Options = options.type
 
   type ValidOutputFields = |[AnyOutputField]
 
   type ArgumentsVals =
-    (in.type         := in.Raw)    ::
+    (in.type         := in.Raw)         ::
     (input_type.type := input_type.Raw) ::
-    (dbtype.type     := dbtype.Raw)   ::
+    (dbtype.type     := dbtype.Raw)     ::
     *[AnyDenotation]
 
   type OptionsVals =
-    (title.type := title.Raw) ::
+    (title.type := title.Raw)               ::
+    (parse_seqids.type := parse_seqids.Raw) ::
     *[AnyDenotation]
 
-  val defaults: Options := OptionsVals = options (
-    title("") ::
+  val defaults: Options := OptionsVals = options(
+    title("")             ::
+    parse_seqids(false)   ::    
     *[AnyDenotation]
   )
 
