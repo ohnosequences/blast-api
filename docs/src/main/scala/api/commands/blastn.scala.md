@@ -16,10 +16,13 @@ case object blastn extends AnyBlastCommand {
     task            :×:
     evalue          :×:
     max_target_seqs :×:
+    num_alignments  :×:
     strand          :×:
     word_size       :×:
     show_gis        :×:
     ungapped        :×:
+    penalty         :×:
+    reward          :×:
     |[AnyBlastOption]
   )
 
@@ -34,21 +37,27 @@ case object blastn extends AnyBlastCommand {
     (task.type            := task.Raw)            ::
     (evalue.type          := evalue.Raw)          ::
     (max_target_seqs.type := max_target_seqs.Raw) ::
+    (num_alignments.type  := num_alignments.Raw)  ::
     (strand.type          := strand.Raw)          ::
     (word_size.type       := word_size.Raw)       ::
     (show_gis.type        := show_gis.Raw)        ::
     (ungapped.type        := ungapped.Raw)        ::
+    (penalty.type         := penalty.Raw)         ::
+    (reward.type          := reward.Raw)          ::
     *[AnyDenotation]
 
   val defaults: Options := OptionsVals = options (
-    num_threads(1)       ::
-    task(blastn: Task)   ::
-    evalue(10D)          ::
-    max_target_seqs(100) ::
-    strand(Strands.both) ::
-    word_size(4)         ::
-    show_gis(false)      ::
-    ungapped(false)      ::
+    num_threads(1)        ::
+    task(blastn: Task)    ::
+    evalue(10D)           ::
+    max_target_seqs(100)  ::
+    num_alignments(250)   ::
+    strand(Strands.both)  ::
+    word_size(4)          ::
+    show_gis(false)       ::
+    ungapped(false)       ::
+    penalty(0)            ::
+    reward(0)             ::
     *[AnyDenotation]
   )
 
@@ -89,16 +98,16 @@ case object blastn extends AnyBlastCommand {
 
 
 
+[test/scala/CommandGeneration.scala]: ../../../../test/scala/CommandGeneration.scala.md
+[test/scala/OutputParsing.scala]: ../../../../test/scala/OutputParsing.scala.md
+[test/scala/OutputFieldsSpecification.scala]: ../../../../test/scala/OutputFieldsSpecification.scala.md
+[main/scala/api/outputFields.scala]: ../outputFields.scala.md
+[main/scala/api/options.scala]: ../options.scala.md
+[main/scala/api/package.scala]: ../package.scala.md
+[main/scala/api/expressions.scala]: ../expressions.scala.md
 [main/scala/api/commands/blastn.scala]: blastn.scala.md
 [main/scala/api/commands/blastp.scala]: blastp.scala.md
+[main/scala/api/commands/tblastx.scala]: tblastx.scala.md
+[main/scala/api/commands/tblastn.scala]: tblastn.scala.md
 [main/scala/api/commands/blastx.scala]: blastx.scala.md
 [main/scala/api/commands/makeblastdb.scala]: makeblastdb.scala.md
-[main/scala/api/commands/tblastn.scala]: tblastn.scala.md
-[main/scala/api/commands/tblastx.scala]: tblastx.scala.md
-[main/scala/api/expressions.scala]: ../expressions.scala.md
-[main/scala/api/options.scala]: ../options.scala.md
-[main/scala/api/outputFields.scala]: ../outputFields.scala.md
-[main/scala/api/package.scala]: ../package.scala.md
-[test/scala/CommandGeneration.scala]: ../../../../test/scala/CommandGeneration.scala.md
-[test/scala/OutputFieldsSpecification.scala]: ../../../../test/scala/OutputFieldsSpecification.scala.md
-[test/scala/OutputParsing.scala]: ../../../../test/scala/OutputParsing.scala.md

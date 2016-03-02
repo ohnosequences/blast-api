@@ -71,8 +71,22 @@ case object evalue          extends BlastOption[Double](n => n.toString)
 case object max_target_seqs extends BlastOption[Int](n => n.toString)
 case object show_gis        extends BlastOption[Boolean](t => "")
 
-case object word_size extends BlastOption[Int](n => if( n < 4 ) 4.toString else n.toString )
+case object word_size extends BlastOption[Int](n => if(n < 4) 4.toString else n.toString)
+```
+
+penalty needs to be ≤ 0
+
+```scala
+case object penalty extends BlastOption[Int](n => if(n > 0) 0.toString else n.toString)
+```
+
+reward needs to be ≥ 0
+
+```scala
+case object reward extends BlastOption[Int](n => if(n < 0) 0.toString else n.toString)
 case object ungapped extends BlastOption[Boolean](t => "")
+
+case object num_alignments extends BlastOption[Int](n => if(n < 0) 250.toString else n.toString)
 
 case object strand extends BlastOption[Strands](_.toString)
 
@@ -119,16 +133,16 @@ case object BlastDBType {
 
 
 
+[test/scala/CommandGeneration.scala]: ../../../test/scala/CommandGeneration.scala.md
+[test/scala/OutputParsing.scala]: ../../../test/scala/OutputParsing.scala.md
+[test/scala/OutputFieldsSpecification.scala]: ../../../test/scala/OutputFieldsSpecification.scala.md
+[main/scala/api/outputFields.scala]: outputFields.scala.md
+[main/scala/api/options.scala]: options.scala.md
+[main/scala/api/package.scala]: package.scala.md
+[main/scala/api/expressions.scala]: expressions.scala.md
 [main/scala/api/commands/blastn.scala]: commands/blastn.scala.md
 [main/scala/api/commands/blastp.scala]: commands/blastp.scala.md
+[main/scala/api/commands/tblastx.scala]: commands/tblastx.scala.md
+[main/scala/api/commands/tblastn.scala]: commands/tblastn.scala.md
 [main/scala/api/commands/blastx.scala]: commands/blastx.scala.md
 [main/scala/api/commands/makeblastdb.scala]: commands/makeblastdb.scala.md
-[main/scala/api/commands/tblastn.scala]: commands/tblastn.scala.md
-[main/scala/api/commands/tblastx.scala]: commands/tblastx.scala.md
-[main/scala/api/expressions.scala]: expressions.scala.md
-[main/scala/api/options.scala]: options.scala.md
-[main/scala/api/outputFields.scala]: outputFields.scala.md
-[main/scala/api/package.scala]: package.scala.md
-[test/scala/CommandGeneration.scala]: ../../../test/scala/CommandGeneration.scala.md
-[test/scala/OutputFieldsSpecification.scala]: ../../../test/scala/OutputFieldsSpecification.scala.md
-[test/scala/OutputParsing.scala]: ../../../test/scala/OutputParsing.scala.md
