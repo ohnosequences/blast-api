@@ -14,7 +14,6 @@ case object blastn extends AnyBlastCommand {
     task            :×:
     evalue          :×:
     max_target_seqs :×:
-    num_alignments  :×:
     strand          :×:
     word_size       :×:
     show_gis        :×:
@@ -35,7 +34,6 @@ case object blastn extends AnyBlastCommand {
     (task.type            := task.Raw)            ::
     (evalue.type          := evalue.Raw)          ::
     (max_target_seqs.type := max_target_seqs.Raw) ::
-    (num_alignments.type  := num_alignments.Raw)  ::
     (strand.type          := strand.Raw)          ::
     (word_size.type       := word_size.Raw)       ::
     (show_gis.type        := show_gis.Raw)        ::
@@ -44,12 +42,12 @@ case object blastn extends AnyBlastCommand {
     (reward.type          := reward.Raw)          ::
     *[AnyDenotation]
 
+  /* Default values match those documented in [the official BLAST docs](http://www.ncbi.nlm.nih.gov/books/NBK279675/) whenever possible. */
   val defaults: Options := OptionsVals = options (
     num_threads(1)        ::
     task(blastn: Task)    ::
     evalue(10D)           ::
-    max_target_seqs(100)  ::
-    num_alignments(250)   ::
+    max_target_seqs(500)  ::
     strand(Strands.both)  ::
     word_size(4)          ::
     show_gis(false)       ::
