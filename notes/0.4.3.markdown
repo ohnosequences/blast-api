@@ -1,0 +1,2 @@
+- remove num_alignments, add note about option defauls
+- tests pass, closes #24
