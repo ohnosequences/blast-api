@@ -86,8 +86,6 @@ reward needs to be ≥ 0
 case object reward extends BlastOption[Int](n => if(n < 0) 0.toString else n.toString)
 case object ungapped extends BlastOption[Boolean](t => "")
 
-case object num_alignments extends BlastOption[Int](n => if(n < 0) 250.toString else n.toString)
-
 case object strand extends BlastOption[Strands](_.toString)
 
 sealed trait Strands
