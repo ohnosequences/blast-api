@@ -51,7 +51,7 @@ Default values match those documented in [the official BLAST docs](http://www.nc
   val defaults: Options := OptionsVals = options (
     num_threads(1)        ::
     task(blastn: Task)    ::
-    evalue(10D)           ::
+    evalue(BigDecimal(10))::
     max_target_seqs(500)  ::
     strand(Strands.both)  ::
     word_size(4)          ::
