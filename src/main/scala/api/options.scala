@@ -74,6 +74,9 @@ case object Strands {
   case object plus  extends Strands
 }
 
+// TODO the default values website says that this is an int?!
+case object perc_identity extends BlastOption[Double](n => if(n > 100 || n < 0) 0.toString else n.toString)
+
 /*
   #### `makeblastdb`-specific options
 */
