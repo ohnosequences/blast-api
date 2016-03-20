@@ -1,7 +1,7 @@
 package ohnosequences.blast.api
 
 import ohnosequences.cosas._, types._, records._, fns._, klists._, typeUnions._
-import java.math.BigDecimal
+// import java.math.BigDecimal
 
 /*
   ### BLAST output formats and fields
@@ -37,7 +37,7 @@ case object outputFields {
 
   val bigDecimalParser: String => Option[BigDecimal] = str => {
     import scala.util.control.Exception._
-    catching(classOf[NumberFormatException]) opt new BigDecimal(str)
+    catching(classOf[NumberFormatException]) opt BigDecimal(str)
   }
 
   /* Query Seq-id */

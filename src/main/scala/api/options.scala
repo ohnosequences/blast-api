@@ -53,7 +53,7 @@ case object query extends BlastOption[File](f => f.path.toString)
 case object out   extends BlastOption[File](f => f.path.toString)
 
 case object num_threads     extends BlastOption[Int](n => n.toString)
-case object evalue          extends BlastOption[Double](n => n.toString)
+case object evalue          extends BlastOption[BigDecimal](n => n.toString)
 case object max_target_seqs extends BlastOption[Int](n => n.toString)
 case object show_gis        extends BlastOption[Boolean](t => "")
 
