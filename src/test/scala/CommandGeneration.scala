@@ -6,7 +6,7 @@ import better.files._
 
 class CommandGeneration extends org.scalatest.FunSuite {
 
-  val dbFile    = File("/tmp/buh")
+  val dbFiles   = Set(File("/tmp/buh"))
   val queryFile = File("/tmp/query")
   val outFile   = File("/tmp/blastout")
 
@@ -15,7 +15,7 @@ class CommandGeneration extends org.scalatest.FunSuite {
   val stmt = blastn(
     outRec,
     argumentValues =
-      db(dbFile)       ::
+      db(dbFiles)      ::
       query(queryFile) ::
       out(outFile)     ::
       *[AnyDenotation],
