@@ -62,7 +62,7 @@ As the same options are valid for several commands, they are defined independent
 
 
 ```scala
-case object db    extends BlastOption[File](f => f.path.toString)
+case object db    extends BlastOption[Set[File]](f => f.toList.map(_.path.toString).mkString(" "))
 case object query extends BlastOption[File](f => f.path.toString)
 case object out   extends BlastOption[File](f => f.path.toString)
 
