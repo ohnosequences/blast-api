@@ -1,0 +1,2 @@
+- change db option value to Set[File]
+- add a minimal set of blastx options
