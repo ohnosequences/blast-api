@@ -24,17 +24,29 @@ case object blastx extends AnyBlastCommand {
   type Options = options.type
 
   type ValidOutputFields =
-    qseqid.type    :×:
-    sseqid.type    :×:
-    sgi.type       :×:
-    qstart.type    :×:
-    qend.type      :×:
-    sstart.type    :×:
-    send.type      :×:
-    qlen.type      :×:
-    slen.type      :×:
-    bitscore.type  :×:
-    score.type     :×:
+    qseqid.type     :×:
+    sseqid.type     :×:
+    sgi.type        :×:
+    qstart.type     :×:
+    qend.type       :×:
+    sstart.type     :×:
+    send.type       :×:
+    qlen.type       :×:
+    slen.type       :×:
+    qseq.type       :×:
+    sseq.type       :×:
+    outputFields.evalue.type :×:
+    bitscore.type   :×:
+    score.type      :×:
+    length.type     :×:
+    pident.type     :×:
+    mismatch.type   :×:
+    positive.type   :×:
+    gapopen.type    :×:
+    gaps.type       :×:
+    qcovs.type      :×:
+    nident.type     :×:
+    ppos.type       :×:
     |[AnyOutputField]
 
   type ArgumentsVals =
