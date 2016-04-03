@@ -69,7 +69,7 @@ case object blastx extends AnyBlastCommand {
     evalue(BigDecimal(10))  ::
     max_target_seqs(500)    ::
     strand(Strands.both)    ::
-    word_size(4)            ::
+    word_size(3)            ::
     ungapped(false)         ::
     *[AnyDenotation]
   )

@@ -1,0 +1,3 @@
+Fixing #39, boolean flags were always being set irrespectively of their value.
+
+- add a specific instance for Boolean option to Seq[String] (#39)
