@@ -51,11 +51,11 @@ case object blastn extends AnyBlastCommand {
     evalue(BigDecimal(10))::
     max_target_seqs(500)  ::
     strand(Strands.both)  ::
-    word_size(4)          ::
+    word_size(11)         ::
     show_gis(false)       ::
     ungapped(false)       ::
-    penalty(0)            ::
-    reward(0)             ::
+    penalty(-3)           ::
+    reward(2)             ::
     perc_identity(0D)     ::
     *[AnyDenotation]
   )
