@@ -1,0 +1,3 @@
+
+- add perc_identity to blastn options #41
+- set blastn option defaults to those of the default task #42
