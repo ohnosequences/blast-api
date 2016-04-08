@@ -22,6 +22,7 @@ case object blastn extends AnyBlastCommand {
     ungapped        :×:
     penalty         :×:
     reward          :×:
+    perc_identity   :×:
     |[AnyBlastOption]
   )
 
@@ -42,6 +43,7 @@ case object blastn extends AnyBlastCommand {
     (ungapped.type        := ungapped.Raw)        ::
     (penalty.type         := penalty.Raw)         ::
     (reward.type          := reward.Raw)          ::
+    (perc_identity.type   := perc_identity.Raw)   ::
     *[AnyDenotation]
 ```
 
@@ -54,11 +56,12 @@ Default values match those documented in [the official BLAST docs](http://www.nc
     evalue(BigDecimal(10))::
     max_target_seqs(500)  ::
     strand(Strands.both)  ::
-    word_size(4)          ::
+    word_size(11)         ::
     show_gis(false)       ::
     ungapped(false)       ::
-    penalty(0)            ::
-    reward(0)             ::
+    penalty(-3)           ::
+    reward(2)             ::
+    perc_identity(0D)     ::
     *[AnyDenotation]
   )
 
