@@ -18,20 +18,6 @@ package object api {
   type AnyBlastOutputRecord = AnyRecordType { type Keys <: AnyBlastOutputFields }
   type BlastOutputRecord[OFs <: AnyBlastOutputFields] = RecordType[OFs]
 
-  case object AnyBlastOutputRecord {
-
-    /* expressing that the record has only those keys that are in the command's ValidOutputFields product */
-    type For[C <: AnyBlastCommand] =
-      AnyBlastOutputRecord {
-        type Keys <: AnyBlastOutputFields {
-          type Types <: AnyKList {
-            type Bound <: AnyOutputField
-            type Union <: C#ValidOutputFields#Types#Union
-          }
-        }
-      }
-  }
-
   implicit def blastOutputRecordOps[R <: AnyBlastOutputRecord](r: R):
     BlastOutputRecordOps[R] =
     BlastOutputRecordOps[R](r)

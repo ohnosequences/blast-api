@@ -42,9 +42,11 @@ case object tblastx extends AnyBlastCommand {
     *[AnyDenotation]
   )
 
-  def apply[R <: AnyBlastOutputRecord.For[this.type]](
+  def apply[R <: AnyBlastOutputRecord](
     outputRecord: R,
     argumentValues: ArgumentsVals,
     optionValues: OptionsVals
+  )(implicit
+    validFields: R#Keys ValidFieldsFor this.type
   ): BlastExpression[this.type, R] = BlastExpression(this)(outputRecord, argumentValues, optionValues)
 }

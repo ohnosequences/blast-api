@@ -27,6 +27,17 @@ trait AnyBlastCommand {
   type ValidOutputFields <: AnyBlastOutputFields
 }
 
+trait ValidFieldsFor[R <: AnyBlastOutputFields, C <: AnyBlastCommand]
+
+case object ValidFieldsFor {
+
+  implicit def check[R <: AnyBlastOutputFields, C <: AnyBlastCommand]
+    (implicit
+      subunion: R#Types#AllTypes isSubunionOf C#ValidOutputFields#Types#AllTypes
+    ):  (R ValidFieldsFor C) =
+    new (R ValidFieldsFor C) {}
+}
+
 /*
   An expression is a BLAST command with all the needed arguments given and ready to be executed
 */
@@ -35,15 +46,16 @@ trait AnyBlastExpression {
   type Command <: AnyBlastCommand
   val  command: Command
 
-  type OutputRecord <: AnyBlastOutputRecord.For[Command]
+  type OutputRecord <: AnyBlastOutputRecord
   val  outputRecord: OutputRecord
 
   val argumentValues: Command#ArgumentsVals
   val optionValues: Command#OptionsVals
 
   // implicitly:
-  val argValsToSeq: BlastOptionsToSeq[Command#ArgumentsVals]
-  val optValsToSeq: BlastOptionsToSeq[Command#OptionsVals]
+  implicit val validFields: OutputRecord#Keys ValidFieldsFor Command
+  implicit val argValsToSeq: BlastOptionsToSeq[Command#ArgumentsVals]
+  implicit val optValsToSeq: BlastOptionsToSeq[Command#OptionsVals]
 
   /* For command values we generate a `Seq[String]` which is valid command expression that you can
      execute (assuming BLAST installed) using `scala.sys.process` or anything similar. */
@@ -56,12 +68,13 @@ trait AnyBlastExpression {
 
 case class BlastExpression[
   C <: AnyBlastCommand,
-  R <: AnyBlastOutputRecord.For[C]
+  R <: AnyBlastOutputRecord
 ](val command: C
 )(val outputRecord: R,
   val argumentValues: C#ArgumentsVals,
   val optionValues: C#OptionsVals
 )(implicit
+  val validFields: R#Keys ValidFieldsFor C,
   val argValsToSeq: BlastOptionsToSeq[C#ArgumentsVals],
   val optValsToSeq: BlastOptionsToSeq[C#OptionsVals]
 ) extends AnyBlastExpression {
