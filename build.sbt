@@ -13,6 +13,6 @@ libraryDependencies ++= Seq(
   "com.github.tototoshi"  %% "scala-csv"    % "1.2.2" % Test
 )
 
-incOptions := incOptions.value.withNameHashing(false)
+// incOptions := incOptions.value.withNameHashing(false)
 
 bucketSuffix  := "era7.com"
