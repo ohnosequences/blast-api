@@ -42,13 +42,6 @@ case object tblastn extends AnyBlastCommand {
     *[AnyDenotation]
   )
 
-  case object task extends BlastOption[Task](t => t.name) {
-    def apply(t: Task): this.type := Task = this := t
-  }
-  sealed abstract class Task(val name: String)
-  case object tblastn     extends Task( "tblastn" )
-  case object tblastnFast extends Task( "tblastn-fast" )
-
   def apply[R <: AnyBlastOutputRecord.For[this.type]](
     outputRecord: R,
     argumentValues: ArgumentsVals,
