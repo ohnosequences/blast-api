@@ -4,7 +4,7 @@ name          := "blast-api"
 organization  := "ohnosequences"
 description   := "A typesafe Scala BLAST API"
 
-scalaVersion  := "2.11.7"
+scalaVersion  := "2.11.8"
 
 libraryDependencies ++= Seq(
   "ohnosequences"         %% "cosas"        % "0.8.0",

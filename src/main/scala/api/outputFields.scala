@@ -1,6 +1,7 @@
 package ohnosequences.blast.api
 
 import ohnosequences.cosas._, types._, records._, fns._, klists._, typeUnions._
+// import java.math.BigDecimal
 
 /*
   ### BLAST output formats and fields
@@ -25,15 +26,18 @@ case object outputFields {
     catching(classOf[NumberFormatException]) opt str.toInt
   }
 
+  val doubleParser: String => Option[Double] = str => {
+    import scala.util.control.Exception._
+    catching(classOf[NumberFormatException]) opt str.toDouble
+  }
   val longParser: String => Option[Long] = str => {
     import scala.util.control.Exception._
     catching(classOf[NumberFormatException]) opt str.toLong
   }
 
-  val doubleFromScientificNotation: String => Option[Double] = str => {
-    import java.math.BigDecimal
-    // funny blast output
-    Some( (new BigDecimal( str.replace("e", "E") )).doubleValue )
+  val bigDecimalParser: String => Option[BigDecimal] = str => {
+    import scala.util.control.Exception._
+    catching(classOf[NumberFormatException]) opt BigDecimal(str)
   }
 
   /* Query Seq-id */
@@ -49,7 +53,7 @@ case object outputFields {
   // means Query accesion
   case object qacc      extends OutputField[String]
   // means Query accesion.version
-  case object qaccver   extends OutputField[Int]
+  // case object qaccver   extends OutputField[Int]
 
   /* Query sequence length */
   type qlen = qlen.type
@@ -69,7 +73,7 @@ case object outputFields {
 
 
   // means All subject Seq-id(s), separated by a ';'
-  case object sallseqid extends OutputField[List[String]]
+  // case object sallseqid extends OutputField[List[String]]
 
   /* Subject GI */
   type sgi = sgi.type
@@ -80,7 +84,7 @@ case object outputFields {
     new DenotationSerializer(sgi, sgi.label)({ v: String => Some(v) })
 
   // means All subject GIs
-  case object sallgi    extends OutputField[List[String]]
+  // case object sallgi    extends OutputField[List[String]]
   // means Subject accession
   case object sacc      extends OutputField[String]
   // means Subject accession.version
@@ -117,7 +121,7 @@ case object outputFields {
   type sstart = sstart.type
   case object sstart    extends OutputField[Int]
   implicit val sstartParser: DenotationParser[sstart,Int,String] =
-  new DenotationParser(sstart, sstart.label)(intParser)
+    new DenotationParser(sstart, sstart.label)(intParser)
   implicit val sstartSerializer: DenotationSerializer[sstart,Int,String] =
     new DenotationSerializer(sstart, sstart.label)({ v => Some(v.toString) })
 
@@ -138,11 +142,12 @@ case object outputFields {
   case object sseq      extends OutputField[String]
 
   // means Expect value
-  case object evalue    extends OutputField[Double]
+  // TODO make it BigDecimal
+  case object evalue    extends OutputField[BigDecimal]
   // TODO this does not seem to work as expected
-  implicit val evalueParser: DenotationParser[evalue.type,Double,String] =
-    new DenotationParser(evalue, evalue.label)(doubleFromScientificNotation)
-  implicit val evalueSerializer: DenotationSerializer[evalue.type,Double,String] =
+  implicit val evalueParser: DenotationParser[evalue.type,BigDecimal,String] =
+    new DenotationParser(evalue, evalue.label)(bigDecimalParser)
+  implicit val evalueSerializer: DenotationSerializer[evalue.type,BigDecimal,String] =
     new DenotationSerializer(evalue, evalue.label)({ v => Some(v.toString) })
 
   // means Bit score
@@ -162,28 +167,84 @@ case object outputFields {
     new DenotationSerializer(score, score.label)({ v => Some(v.toString) })
 
   // means Alignment length
+  type length = length.type
   case object length    extends OutputField[Int]
+  implicit val lengthParser: DenotationParser[length,Int,String] =
+    new DenotationParser(length, length.label)(intParser)
+  implicit val lengthSerializer: DenotationSerializer[length,Int,String] =
+    new DenotationSerializer(length, length.label)({ v => Some(v.toString) })
+
   // means Percentage of identical matches
+  type pident = pident.type
   case object pident    extends OutputField[Double]
+  implicit val pidentParser: DenotationParser[pident,Double,String] =
+    new DenotationParser(pident, pident.label)(doubleParser)
+  implicit val pidentSerializer: DenotationSerializer[pident,Double,String] =
+    new DenotationSerializer(pident, pident.label)({ v => Some(v.toString) })
+
   // means Number of mismatches
+  type mismatch = mismatch.type
   case object mismatch  extends OutputField[Int]
+  implicit val mismatchParser: DenotationParser[mismatch,Int,String] =
+    new DenotationParser(mismatch, mismatch.label)(intParser)
+  implicit val mismatchSerializer: DenotationSerializer[mismatch,Int,String] =
+    new DenotationSerializer(mismatch, mismatch.label)({ v => Some(v.toString) })
+
   // means Number of positive-scoring matches
+  type positive = positive.type
   case object positive  extends OutputField[Int]
+  implicit val positiveParser: DenotationParser[positive,Int,String] =
+    new DenotationParser(positive, positive.label)(intParser)
+  implicit val positiveSerializer: DenotationSerializer[positive,Int,String] =
+    new DenotationSerializer(positive, positive.label)({ v => Some(v.toString) })
+
   // means Number of gap openings
+  type gapopen = gapopen.type
   case object gapopen   extends OutputField[Int]
+  implicit val gapopenParser: DenotationParser[gapopen,Int,String] =
+    new DenotationParser(gapopen, gapopen.label)(intParser)
+  implicit val gapopenSerializer: DenotationSerializer[gapopen,Int,String] =
+    new DenotationSerializer(gapopen, gapopen.label)({ v => Some(v.toString) })
+
   // means Total number of gaps
+  type gaps = gaps.type
   case object gaps      extends OutputField[Int]
+  implicit val gapsParser: DenotationParser[gaps,Int,String] =
+    new DenotationParser(gaps, gaps.label)(intParser)
+  implicit val gapsSerializer: DenotationSerializer[gaps,Int,String] =
+    new DenotationSerializer(gaps, gaps.label)({ v => Some(v.toString) })
+
   // means Query frame
   case object qframe    extends OutputField[String]
   // means Subject frame
   case object sframe    extends OutputField[String]
 
-  // TODO sort these out
+  // query coverage per subject. See https://www.biostars.org/p/121972/#122201
+  type qcovs = qcovs.type
+  case object qcovs extends OutputField[Double]
+  implicit val qcovsParser: DenotationParser[qcovs,Double,String] =
+    new DenotationParser(qcovs, qcovs.label)(doubleParser)
+  implicit val qcovsSerializer: DenotationSerializer[qcovs,Double,String] =
+  new DenotationSerializer(qcovs, qcovs.label)({ v => Some(v.toString) })
+
   // means Number of identical matches
-  // case object nident extends OutputField[String]  {
-  // }
-  // case object ppos extends OutputField[String]  { // means Percentage of positive-scoring matches
-  // }
+  type nident = nident.type
+  case object nident extends OutputField[Int]
+  implicit val nidentParser: DenotationParser[nident,Int,String] =
+    new DenotationParser(nident, nident.label)(intParser)
+  implicit val nidentSerializer: DenotationSerializer[nident,Int,String] =
+    new DenotationSerializer(nident, nident.label)({ v => Some(v.toString) })
+
+  // means Percentage of positive-scoring matches
+  type ppos = ppos.type
+  case object ppos extends OutputField[Double]
+  implicit val pposParser: DenotationParser[ppos,Double,String] =
+    new DenotationParser(ppos, ppos.label)(doubleParser)
+  implicit val pposSerializer: DenotationSerializer[ppos,Double,String] =
+  new DenotationSerializer(ppos, ppos.label)({ v => Some(v.toString) })
+
+
+  // TODO sort these out
   // case object frames extends OutputField[String]  { // means Query and subject frames separated by a '/'
   // }
   // case object btop extends OutputField[String]  { // means Blast traceback operations (BTOP)
@@ -203,8 +264,6 @@ case object outputFields {
   // case object salltitles extends OutputField[String]  { // means All Subject Title(s), separated by a '<>'
   // }
   // case object sstrand extends OutputField[String]  { // means Subject Strand
-  // }
-  // case object qcovs extends OutputField[String]  { // means Query Coverage Per Subject
   // }
   // case object qcovhsp extends OutputField[String]  { // means Query Coverage Per HSP
   // }

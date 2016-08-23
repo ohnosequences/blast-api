@@ -8,7 +8,7 @@ import better.files._
 
 class CommandGeneration extends org.scalatest.FunSuite {
 
-  val dbFile    = File("/tmp/buh")
+  val dbFiles   = Set(File("/tmp/buh"), File("/tmp/bah"))
   val queryFile = File("/tmp/query")
   val outFile   = File("/tmp/blastout")
 
@@ -17,7 +17,7 @@ class CommandGeneration extends org.scalatest.FunSuite {
   val stmt = blastn(
     outRec,
     argumentValues =
-      db(dbFile)       ::
+      db(dbFiles)      ::
       query(queryFile) ::
       out(outFile)     ::
       *[AnyDenotation],
@@ -29,7 +29,7 @@ class CommandGeneration extends org.scalatest.FunSuite {
 
     assert {
       stmt.toSeq ===
-        Seq("blastn", "-db", "/tmp/buh", "-query", "/tmp/query", "-out", "/tmp/blastout") ++
+        Seq("blastn", "-db", "/tmp/buh /tmp/bah", "-query", "/tmp/query", "-out", "/tmp/blastout") ++
         blastn.defaults.value.toSeq ++
         Seq("-outfmt", "10 qseqid sseqid")
     }
@@ -41,16 +41,16 @@ class CommandGeneration extends org.scalatest.FunSuite {
 
 
 
+[test/scala/CommandGeneration.scala]: CommandGeneration.scala.md
+[test/scala/OutputParsing.scala]: OutputParsing.scala.md
+[test/scala/OutputFieldsSpecification.scala]: OutputFieldsSpecification.scala.md
+[main/scala/api/outputFields.scala]: ../../main/scala/api/outputFields.scala.md
+[main/scala/api/options.scala]: ../../main/scala/api/options.scala.md
+[main/scala/api/package.scala]: ../../main/scala/api/package.scala.md
+[main/scala/api/expressions.scala]: ../../main/scala/api/expressions.scala.md
 [main/scala/api/commands/blastn.scala]: ../../main/scala/api/commands/blastn.scala.md
 [main/scala/api/commands/blastp.scala]: ../../main/scala/api/commands/blastp.scala.md
+[main/scala/api/commands/tblastx.scala]: ../../main/scala/api/commands/tblastx.scala.md
+[main/scala/api/commands/tblastn.scala]: ../../main/scala/api/commands/tblastn.scala.md
 [main/scala/api/commands/blastx.scala]: ../../main/scala/api/commands/blastx.scala.md
 [main/scala/api/commands/makeblastdb.scala]: ../../main/scala/api/commands/makeblastdb.scala.md
-[main/scala/api/commands/tblastn.scala]: ../../main/scala/api/commands/tblastn.scala.md
-[main/scala/api/commands/tblastx.scala]: ../../main/scala/api/commands/tblastx.scala.md
-[main/scala/api/expressions.scala]: ../../main/scala/api/expressions.scala.md
-[main/scala/api/options.scala]: ../../main/scala/api/options.scala.md
-[main/scala/api/outputFields.scala]: ../../main/scala/api/outputFields.scala.md
-[main/scala/api/package.scala]: ../../main/scala/api/package.scala.md
-[test/scala/CommandGeneration.scala]: CommandGeneration.scala.md
-[test/scala/OutputFieldsSpecification.scala]: OutputFieldsSpecification.scala.md
-[test/scala/OutputParsing.scala]: OutputParsing.scala.md

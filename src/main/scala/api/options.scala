@@ -26,6 +26,18 @@ case object optionValueToSeq extends DepFn1[AnyDenotation, Seq[String]] {
   )
   : AnyApp1At[optionValueToSeq.type, FO := V] { type Y = Seq[String] }=
     App1 { v: FO := V => Seq(option.label) ++ option.valueToString(v.value).filterNot(_.isEmpty) }
+
+    implicit def forFlags[FO <: AnyBlastOption { type Raw = Boolean }](implicit
+      option: FO
+    )
+    : AnyApp1At[optionValueToSeq.type, FO := Boolean] { type Y = Seq[String] }=
+      App1 {
+        v: FO := Boolean =>
+          if(v.value)
+            Seq(option.label) ++ option.valueToString(v.value).filterNot(_.isEmpty)
+          else
+            Seq()
+      }
 }
 
 /* This works as a type class, which provides a way of serializing a list of AnyBlastOption's */
@@ -48,16 +60,20 @@ case object BlastOptionsToSeq {
 
   As the same options are valid for several commands, they are defined independently here.
 */
-case object db    extends BlastOption[File](f => f.path.toString)
+case object db    extends BlastOption[Set[File]](f => f.toList.map(_.path.toString).mkString(" "))
 case object query extends BlastOption[File](f => f.path.toString)
 case object out   extends BlastOption[File](f => f.path.toString)
 
 case object num_threads     extends BlastOption[Int](n => n.toString)
-case object evalue          extends BlastOption[Double](n => n.toString)
+case object evalue          extends BlastOption[BigDecimal](n => n.toString)
 case object max_target_seqs extends BlastOption[Int](n => n.toString)
 case object show_gis        extends BlastOption[Boolean](t => "")
 
-case object word_size extends BlastOption[Int](n => if( n < 4 ) 4.toString else n.toString )
+case object word_size extends BlastOption[Int](n => if(n < 4) 4.toString else n.toString)
+/* penalty needs to be ≤ 0 */
+case object penalty extends BlastOption[Int](n => if(n > 0) 0.toString else n.toString)
+/* reward needs to be ≥ 0 */
+case object reward extends BlastOption[Int](n => if(n < 0) 0.toString else n.toString)
 case object ungapped extends BlastOption[Boolean](t => "")
 
 case object strand extends BlastOption[Strands](_.toString)
@@ -69,6 +85,9 @@ case object Strands {
   case object minus extends Strands
   case object plus  extends Strands
 }
+
+// TODO the default values website says that this is an int?!
+case object perc_identity extends BlastOption[Double](n => if(n > 100 || n < 0) 0.toString else n.toString)
 
 /*
   #### `makeblastdb`-specific options

@@ -1,0 +1,2 @@
+- all output fields have now parser/serializer, evalue is BigDecimal
+- add perc_identity option to blastn
