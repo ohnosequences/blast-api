@@ -8,9 +8,39 @@ case object blastp extends AnyBlastCommand {
   case object arguments extends RecordType(db :×: query :×: out :×: |[AnyBlastOption])
   type Arguments = arguments.type
 
-  // TODO: issue:10 figure out the full list of options here
-  case object options extends RecordType(num_threads :×: |[AnyBlastOption])
   type Options = options.type
+  case object options extends RecordType(
+    num_threads     :×:
+    evalue          :×:
+    show_gis        :×:
+    max_target_seqs :×:
+    word_size       :×:
+    |[AnyBlastOption]
+  )
+
+  type ArgumentsVals =
+    (db.type    := db.Raw)    ::
+    (query.type := query.Raw) ::
+    (out.type   := out.Raw)   ::
+    *[AnyDenotation]
+
+  type OptionsVals =
+    (num_threads.type     := num_threads.Raw)     ::
+    (evalue.type          := evalue.Raw)          ::
+    (show_gis.type        := show_gis.Raw)        ::
+    (max_target_seqs.type := max_target_seqs.Raw) ::
+    (word_size.type       := word_size.Raw)       ::
+    *[AnyDenotation]
+
+  /* Default values match those documented in [the official BLAST docs](http://www.ncbi.nlm.nih.gov/books/NBK279675/) whenever possible. */
+  val defaults: Options := OptionsVals = options (
+    num_threads(1)        ::
+    evalue(BigDecimal(10))::
+    show_gis(false)       ::
+    max_target_seqs(500)  ::
+    word_size(3)          :: // valid word sizes are 2-7
+    *[AnyDenotation]
+  )
 
   type ValidOutputFields =
     qseqid.type    :×:
@@ -25,20 +55,6 @@ case object blastp extends AnyBlastCommand {
     bitscore.type  :×:
     score.type     :×:
     |[AnyOutputField]
-
-  type ArgumentsVals =
-    (db.type    := db.Raw)    ::
-    (query.type := query.Raw) ::
-    (out.type   := out.Raw)   ::
-    *[AnyDenotation]
-
-  type OptionsVals =
-    (num_threads.type := num_threads.Raw) ::
-    *[AnyDenotation]
-
-  val defaults: Options := OptionsVals = options (
-    num_threads(1) :: *[AnyDenotation]
-  )
 
   def apply[R <: AnyBlastOutputRecord.For[this.type]](
     outputRecord: R,
