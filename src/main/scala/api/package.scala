@@ -1,7 +1,6 @@
 package ohnosequences.blast
 
 import ohnosequences.cosas._, types._, records._, fns._, klists._, typeUnions._
-import better.files._
 
 package object api {
 
