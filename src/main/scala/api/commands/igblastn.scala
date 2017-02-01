@@ -113,9 +113,21 @@ case object igblastn extends AnyBlastCommand {
   type ValidOutputFields =
     |[AnyOutputField]
 
-  // TODO do something with this
-  // def apply(
-  //   argumentValues: ArgumentsVals,
-  //   optionValues: OptionsVals
-  // ): BlastExpression[this.type, ] = BlastExpression(this)(outputRecord, argumentValues, optionValues)
+  case class IgblastnExpression(argumentValues: ArgumentsVals, optionValues: OptionsVals) {
+
+    lazy val argValsToSeq: BlastOptionsToSeq[ArgumentsVals] =
+      implicitly[BlastOptionsToSeq[ArgumentsVals]]
+
+    lazy val optValsToSeq: BlastOptionsToSeq[OptionsVals] =
+      implicitly[BlastOptionsToSeq[OptionsVals]]
+
+    def toSeq: Seq[String] =
+      igblastn.name                 ++
+      argValsToSeq(argumentValues)  ++
+      optValsToSeq(optionValues)    ++
+      Seq("-outfmt", "7")
+  }
+
+  def apply(argumentValues: ArgumentsVals, optionValues: OptionsVals): IgblastnExpression =
+    IgblastnExpression(argumentValues, optionValues)
 }
