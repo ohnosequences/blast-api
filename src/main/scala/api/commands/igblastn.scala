@@ -113,7 +113,7 @@ case object igblastn extends AnyBlastCommand {
   type ValidOutputFields =
     |[AnyOutputField]
 
-  case class IgblastnExpression(argumentValues: ArgumentsVals, optionValues: OptionsVals) {
+  case class Expression(argumentValues: ArgumentsVals, optionValues: OptionsVals) {
 
     lazy val argValsToSeq: BlastOptionsToSeq[ArgumentsVals] =
       implicitly[BlastOptionsToSeq[ArgumentsVals]]
@@ -128,6 +128,6 @@ case object igblastn extends AnyBlastCommand {
       Seq("-outfmt", "7")
   }
 
-  def apply(argumentValues: ArgumentsVals, optionValues: OptionsVals): IgblastnExpression =
-    IgblastnExpression(argumentValues, optionValues)
+  def apply(argumentValues: ArgumentsVals, optionValues: OptionsVals): Expression =
+    Expression(argumentValues, optionValues)
 }
