@@ -90,6 +90,125 @@ case object Strands {
 case object perc_identity extends BlastOption[Double](n => if(n > 100 || n < 0) 0.toString else n.toString)
 
 /*
+  #### IgBLAST options
+
+  Right now we have as a comment the relevant output of `igblastn -help`
+*/
+
+// -germline_db_V <String>
+//    Germline database name
+case object germline_db_V extends BlastOption[File](_.getCanonicalPath)
+
+//  -num_alignments_V <Integer>
+//    Number of Germline sequences to show alignments for
+//    Default = `3'
+case object num_alignments_V extends BlastOption[Int](_.toString)
+
+//  -germline_db_V_seqidlist <String>
+//    Restrict search of germline database to list of SeqIds's
+
+//  -germline_db_D <String>
+//    Germline database name
+case object germline_db_D extends BlastOption[File](_.getCanonicalPath)
+
+//  -num_alignments_D <Integer>
+//    Number of Germline sequences to show alignments for
+//    Default = `3'
+case object num_alignments_D extends BlastOption[Int](_.toString)
+
+//  -germline_db_D_seqidlist <String>
+//    Restrict search of germline database to list of SeqIds's
+
+//  -germline_db_J <String>
+//    Germline database name
+case object germline_db_J extends BlastOption[File](_.getCanonicalPath)
+
+//  -num_alignments_J <Integer>
+//    Number of Germline sequences to show alignments for
+//    Default = `3'
+case object num_alignments_J extends BlastOption[Int](_.toString)
+
+//  -germline_db_J_seqidlist <String>
+//    Restrict search of germline database to list of SeqIds's
+
+//  -auxiliary_data <String>
+//    File containing the coding frame start positions for sequences in germline
+//    J database
+case object auxiliary_data extends BlastOption[File](_.getCanonicalPath)
+
+//  -min_D_match <Integer, >=5>
+//    Required minimal number of D gene matches
+case object min_D_match extends BlastOption[Int](n => ( if(n < 5) 5 else n ).toString)
+
+//  -D_penalty <Integer, (> -6 and <0)>
+//    Penalty for a nucleotide mismatch in D gene
+//    Default = `-4'
+case object D_penalty extends BlastOption[Int](n => ( if(n > -6 && n < 0) n else -4 ).toString)
+
+//  -num_clonotype <Integer, >=0>
+//    Number of top clonotypes to show
+//    Default = `100'
+case object num_clonotype extends BlastOption[Int](n => (if(n < 0) 100 else n).toString)
+
+//  -clonotype_out <File_Out>
+//    Output file name for clonotype info
+case object clonotype_out extends BlastOption[File](_.getCanonicalPath)
+
+//  -organism <String, `human', `mouse', `rabbit', `rat', `rhesus_monkey'>
+//    The organism for your query sequence (i.e., human, mouse, etc.)
+//    Default = `human'
+case object organism extends BlastOption[IgBLASTOrganism](_.toString)
+sealed trait IgBLASTOrganism
+case object IgBLASTOrganism {
+  case object human         extends IgBLASTOrganism
+  case object mouse         extends IgBLASTOrganism
+  case object rabbit        extends IgBLASTOrganism
+  case object rat           extends IgBLASTOrganism
+  case object rhesus_monkey extends IgBLASTOrganism
+}
+
+//  -domain_system <String, `imgt', `kabat'>
+//    Domain system to be used for segment annotation
+//    Default = `imgt'
+case object domain_system extends BlastOption[IgBLASTDomainSystem](_.toString)
+sealed trait IgBLASTDomainSystem
+case object IgBLASTDomainSystem {
+  case object imgt  extends IgBLASTDomainSystem
+  case object kabat extends IgBLASTDomainSystem
+}
+
+//  -ig_seqtype <String, `Ig', `TCR'>
+case object ig_seqtype extends BlastOption[IgBLASTSeqType](_.toString)
+sealed trait IgBLASTSeqType
+case object IgBLASTSeqType {
+  case object Ig  extends IgBLASTSeqType
+  case object TCR extends IgBLASTSeqType
+}
+
+// -focus_on_V_segment
+//    Should the search only be for V segment (effective only for non-germline
+//    database search using -db option)?
+case object focus_on_V_segment extends BlastOption[Boolean](_=>"")
+
+//  -extend_align5end
+//    Extend V gene alignment at 5' end
+case object extend_align5end extends BlastOption[Boolean](_=>"")
+
+//  -min_V_length <Integer, >=9>
+//    Minimal required V gene length
+//    Default = `9'
+case object min_V_length extends BlastOption[Int](n => (if(n < 9) 9 else n).toString)
+
+//  -min_J_length <Integer, >=0>
+//    Minimal required J gene length
+//    Default = `0'
+case object min_J_length extends BlastOption[Int](n => (if(n < 0) 0 else n).toString)
+
+//  -show_translation
+//    Show translated alignments
+case object show_translation extends BlastOption[Boolean](_=>"")
+
+/*
   #### `makeblastdb`-specific options
 */
 case object title extends BlastOption[String](x => x)
