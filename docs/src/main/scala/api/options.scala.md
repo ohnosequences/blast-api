@@ -3,7 +3,7 @@
 package ohnosequences.blast.api
 
 import ohnosequences.cosas._, types._, records._, fns._, klists._, typeUnions._
-import better.files._
+import java.io._
 
 sealed trait AnyBlastOption extends AnyType {
 ```
@@ -74,9 +74,9 @@ As the same options are valid for several commands, they are defined independent
 
 
 ```scala
-case object db    extends BlastOption[Set[File]](f => f.toList.map(_.path.toString).mkString(" "))
-case object query extends BlastOption[File](f => f.path.toString)
-case object out   extends BlastOption[File](f => f.path.toString)
+case object db    extends BlastOption[Set[File]](f => f.toList.map(_.getCanonicalPath).mkString(" "))
+case object query extends BlastOption[File](f => f.getCanonicalPath)
+case object out   extends BlastOption[File](f => f.getCanonicalPath)
 
 case object num_threads     extends BlastOption[Int](n => n.toString)
 case object evalue          extends BlastOption[BigDecimal](n => n.toString)
@@ -118,7 +118,7 @@ case object perc_identity extends BlastOption[Double](n => if(n > 100 || n < 0) 
 
 ```scala
 case object title extends BlastOption[String](x => x)
-case object in extends BlastOption[File](f => f.path.toString)
+case object in extends BlastOption[File](f => f.getCanonicalPath)
 
 
 case object input_type extends BlastOption[DBInputType](t => t.toString)
@@ -146,16 +146,16 @@ case object BlastDBType {
 
 
 
-[test/scala/CommandGeneration.scala]: ../../../test/scala/CommandGeneration.scala.md
-[test/scala/OutputParsing.scala]: ../../../test/scala/OutputParsing.scala.md
-[test/scala/OutputFieldsSpecification.scala]: ../../../test/scala/OutputFieldsSpecification.scala.md
-[main/scala/api/outputFields.scala]: outputFields.scala.md
-[main/scala/api/options.scala]: options.scala.md
-[main/scala/api/package.scala]: package.scala.md
-[main/scala/api/expressions.scala]: expressions.scala.md
 [main/scala/api/commands/blastn.scala]: commands/blastn.scala.md
 [main/scala/api/commands/blastp.scala]: commands/blastp.scala.md
-[main/scala/api/commands/tblastx.scala]: commands/tblastx.scala.md
-[main/scala/api/commands/tblastn.scala]: commands/tblastn.scala.md
 [main/scala/api/commands/blastx.scala]: commands/blastx.scala.md
 [main/scala/api/commands/makeblastdb.scala]: commands/makeblastdb.scala.md
+[main/scala/api/commands/tblastn.scala]: commands/tblastn.scala.md
+[main/scala/api/commands/tblastx.scala]: commands/tblastx.scala.md
+[main/scala/api/expressions.scala]: expressions.scala.md
+[main/scala/api/options.scala]: options.scala.md
+[main/scala/api/outputFields.scala]: outputFields.scala.md
+[main/scala/api/package.scala]: package.scala.md
+[test/scala/CommandGeneration.scala]: ../../../test/scala/CommandGeneration.scala.md
+[test/scala/OutputFieldsSpecification.scala]: ../../../test/scala/OutputFieldsSpecification.scala.md
+[test/scala/OutputParsing.scala]: ../../../test/scala/OutputParsing.scala.md

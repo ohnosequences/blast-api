@@ -74,13 +74,6 @@ case object blastx extends AnyBlastCommand {
     *[AnyDenotation]
   )
 
-  case object task extends BlastOption[Task](t => t.name) {
-    def apply(t: Task): this.type := Task = this := t
-  }
-  sealed abstract class Task(val name: String)
-  case object blastx     extends Task( "blastx" )
-  case object blastxFast extends Task( "blastx-fast" )
-
   def apply[R <: AnyBlastOutputRecord.For[this.type]](
     outputRecord: R,
     argumentValues: ArgumentsVals,
@@ -93,16 +86,16 @@ case object blastx extends AnyBlastCommand {
 
 
 
-[test/scala/CommandGeneration.scala]: ../../../../test/scala/CommandGeneration.scala.md
-[test/scala/OutputParsing.scala]: ../../../../test/scala/OutputParsing.scala.md
-[test/scala/OutputFieldsSpecification.scala]: ../../../../test/scala/OutputFieldsSpecification.scala.md
-[main/scala/api/outputFields.scala]: ../outputFields.scala.md
-[main/scala/api/options.scala]: ../options.scala.md
-[main/scala/api/package.scala]: ../package.scala.md
-[main/scala/api/expressions.scala]: ../expressions.scala.md
 [main/scala/api/commands/blastn.scala]: blastn.scala.md
 [main/scala/api/commands/blastp.scala]: blastp.scala.md
-[main/scala/api/commands/tblastx.scala]: tblastx.scala.md
-[main/scala/api/commands/tblastn.scala]: tblastn.scala.md
 [main/scala/api/commands/blastx.scala]: blastx.scala.md
 [main/scala/api/commands/makeblastdb.scala]: makeblastdb.scala.md
+[main/scala/api/commands/tblastn.scala]: tblastn.scala.md
+[main/scala/api/commands/tblastx.scala]: tblastx.scala.md
+[main/scala/api/expressions.scala]: ../expressions.scala.md
+[main/scala/api/options.scala]: ../options.scala.md
+[main/scala/api/outputFields.scala]: ../outputFields.scala.md
+[main/scala/api/package.scala]: ../package.scala.md
+[test/scala/CommandGeneration.scala]: ../../../../test/scala/CommandGeneration.scala.md
+[test/scala/OutputFieldsSpecification.scala]: ../../../../test/scala/OutputFieldsSpecification.scala.md
+[test/scala/OutputParsing.scala]: ../../../../test/scala/OutputParsing.scala.md

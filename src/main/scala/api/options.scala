@@ -1,7 +1,7 @@
 package ohnosequences.blast.api
 
 import ohnosequences.cosas._, types._, records._, fns._, klists._, typeUnions._
-import better.files._
+import java.io._
 
 sealed trait AnyBlastOption extends AnyType {
 
@@ -60,9 +60,9 @@ case object BlastOptionsToSeq {
 
   As the same options are valid for several commands, they are defined independently here.
 */
-case object db    extends BlastOption[Set[File]](f => f.toList.map(_.path.toString).mkString(" "))
-case object query extends BlastOption[File](f => f.path.toString)
-case object out   extends BlastOption[File](f => f.path.toString)
+case object db    extends BlastOption[Set[File]](f => f.toList.map(_.getCanonicalPath).mkString(" "))
+case object query extends BlastOption[File](f => f.getCanonicalPath)
+case object out   extends BlastOption[File](f => f.getCanonicalPath)
 
 case object num_threads     extends BlastOption[Int](n => n.toString)
 case object evalue          extends BlastOption[BigDecimal](n => n.toString)
@@ -93,7 +93,7 @@ case object perc_identity extends BlastOption[Double](n => if(n > 100 || n < 0) 
   #### `makeblastdb`-specific options
 */
 case object title extends BlastOption[String](x => x)
-case object in extends BlastOption[File](f => f.path.toString)
+case object in extends BlastOption[File](f => f.getCanonicalPath)
 
 
 case object input_type extends BlastOption[DBInputType](t => t.toString)
