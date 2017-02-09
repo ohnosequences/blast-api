@@ -159,39 +159,12 @@ case object igblastn extends AnyBlastCommand {
           |[AnyOutputField]
       )
 
-      case object cdr1_annotation extends BlastOutputRecord(
-        sstart    :×:
-        send      :×:
-        length    :×:
-        nident    :×: // or should it be `positive`?
-        mismatch  :×:
-        gaps      :×:
-        pident    :×:
-          |[AnyOutputField]
-      )
-
-      case object cdr2_annotation extends BlastOutputRecord(
-        sstart    :×:
-        send      :×:
-        length    :×:
-        nident    :×: // or should it be `positive`?
-        mismatch  :×:
-        gaps      :×:
-        pident    :×:
-          |[AnyOutputField]
-      )
-
+      case object cdr1_annotation extends BlastOutputRecord(stdCDRfields)
+      case object cdr2_annotation extends BlastOutputRecord(stdCDRfields)
       case object cdr3_annotation extends BlastOutputRecord(
         CDR3_nucleotides  :×:
         CDR3_aminoacids   :×:
-        sstart            :×:
-        send              :×:
-        length            :×:
-        nident            :×: // or should it be `positive`?
-        mismatch          :×:
-        gaps              :×:
-        pident            :×:
-          |[AnyOutputField]
+        stdCDRfields
       )
     }
 
@@ -218,41 +191,43 @@ case object igblastn extends AnyBlastCommand {
           |[AnyOutputField]
       )
 
-      case object cdr1_annotation extends BlastOutputRecord(
-        sstart    :×:
-        send      :×:
-        length    :×:
-        nident    :×: // or should it be `positive`?
-        mismatch  :×:
-        gaps      :×:
-        pident    :×:
-          |[AnyOutputField]
-      )
-
-      case object cdr2_annotation extends BlastOutputRecord(
-        sstart    :×:
-        send      :×:
-        length    :×:
-        nident    :×: // or should it be `positive`?
-        mismatch  :×:
-        gaps      :×:
-        pident    :×:
-          |[AnyOutputField]
-      )
-
+      case object cdr1_annotation extends BlastOutputRecord(stdCDRfields)
+      case object cdr2_annotation extends BlastOutputRecord(stdCDRfields)
       case object cdr3_annotation extends BlastOutputRecord(
         CDR3_nucleotides  :×:
         CDR3_aminoacids   :×:
-        sstart            :×:
-        send              :×:
-        length            :×:
-        nident            :×: // or should it be `positive`?
-        mismatch          :×:
-        gaps              :×:
-        pident            :×:
-          |[AnyOutputField]
+        stdCDRfields
       )
     }
+
+    // hit tables are common to all outputs (are they?)
+    case object hitTable extends BlastOutputRecord(
+      segmentType         :×:
+      qseqid              :×:
+      sseqid              :×:
+      pident              :×:
+      length              :×:
+      mismatch            :×:
+      gapopen             :×:
+      gaps                :×:
+      qstart              :×:
+      qend                :×:
+      sstart              :×:
+      send                :×:
+      outputFields.evalue :×:
+      bitscore            :×:
+        |[AnyOutputField]
+    )
+
+    val stdCDRfields =
+      sstart            :×:
+      send              :×:
+      length            :×:
+      nident            :×: // or should it be `positive`?
+      mismatch          :×:
+      gaps              :×:
+      pident            :×:
+        |[AnyOutputField]
 
     /*
       ### VDJ annotation summary
@@ -386,24 +361,5 @@ case object igblastn extends AnyBlastCommand {
       case object J extends SegmentTypes
     }
     case object segmentType extends OutputField[ChainTypes]
-
-    // hit tables are common to all outputs (are they?)
-    case object hitTable extends BlastOutputRecord(
-      segmentType         :×:
-      qseqid              :×:
-      sseqid              :×:
-      pident              :×:
-      length              :×:
-      mismatch            :×:
-      gapopen             :×:
-      gaps                :×:
-      qstart              :×:
-      qend                :×:
-      sstart              :×:
-      send                :×:
-      outputFields.evalue :×:
-      bitscore            :×:
-        |[AnyOutputField]
-    )
   }
 }
