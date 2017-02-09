@@ -124,28 +124,73 @@ case object igblastn {
     )
 
     /*
-      ### CDR3 annotation
+      ### CDRx annotation
 
-      This section is *optional*. Sample output:
+      This table contains the CDR[1-3] annotations; each one is a record with standard BLAST output values. Sample output:
+
+      ```
+      # Alignment summary between query and top germline V gene hit (from, to, length, matches, mismatches, gaps, percent identity)
+      FR1-IMGT	59	136	78	78	0	0	100
+      CDR1-IMGT	137	156	21	20	0	1	95.2
+      FR2-IMGT	157	205	51	47	2	2	92.2
+      CDR2-IMGT	206	228	24	23	0	1	95.8
+      FR3-IMGT	229	331	104	101	0	3	97.1
+      CDR3-IMGT (germline)	332	339	8	8	0	0	100
+      Total	N/A	N/A	286	277	2	7	96.9
+      ```
+    */
+    case object CDR1_annotation extends BlastOutputRecord(
+      sstart    :×:
+      send      :×:
+      length    :×:
+      nident    :×: // or should it be `positive`?
+      mismatch  :×:
+      gaps      :×:
+      pident    :×:
+        |[AnyOutputField]
+    )
+
+    case object CDR2_annotation extends BlastOutputRecord(
+      sstart    :×:
+      send      :×:
+      length    :×:
+      nident    :×: // or should it be `positive`?
+      mismatch  :×:
+      gaps      :×:
+      pident    :×:
+        |[AnyOutputField]
+    )
+
+    /*
+      #### CDR3 annotation
+
+      Note that this section is *optional*. Sample output:
 
       ```
       # Sub-region sequence details (nucleotide sequence, translation)
       CDR3	GCAATGGAGGTGGATAGCAGCTATAAATTGATC	AMEVDSSYKLI
       ```
     */
-    case object CDR3_nucleotides  extends OutputField[String]
-    case object CDR3_aminoacids   extends OutputField[String]
+    case object CDR3_nucleotides  extends OutputField[Option[String]]
+    case object CDR3_aminoacids   extends OutputField[Option[String]]
 
     case object CDR3_annotation extends BlastOutputRecord(
       CDR3_nucleotides  :×:
       CDR3_aminoacids   :×:
+      sstart            :×:
+      send              :×:
+      length            :×:
+      nident            :×: // or should it be `positive`?
+      mismatch          :×:
+      gaps              :×:
+      pident            :×:
         |[AnyOutputField]
     )
 
     /*
       ### Hit table
 
-      This is equivalent to sthe tandard `blastn` output. The format is
+      This is equivalent to the tandard `blastn` output. The format is
 
       ```
       # Hit table (the first field indicates the chain type of the hit)
