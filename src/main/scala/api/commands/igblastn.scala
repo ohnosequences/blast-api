@@ -220,13 +220,13 @@ case object igblastn extends AnyBlastCommand {
     )
 
     val stdCDRfields =
-      sstart            :×:
-      send              :×:
-      length            :×:
-      nident            :×: // or should it be `positive`?
-      mismatch          :×:
-      gaps              :×:
-      pident            :×:
+      sstart    :×:
+      send      :×:
+      length    :×:
+      nident    :×: // or should it be `positive`?
+      mismatch  :×:
+      gaps      :×:
+      pident    :×:
         |[AnyOutputField]
 
     /*
