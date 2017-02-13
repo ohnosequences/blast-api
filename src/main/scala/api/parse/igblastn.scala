@@ -45,9 +45,9 @@ case object igblastn {
   val regionFrom: (Region, Seq[Line]) => Seq[Line] =
     (region, lines) =>
       lines
-        .dropWhile{ l => !region.startsAt(l) }
-        .takeWhile { l => !region.endsAt(l) }
-        .filterNot { l => isEmptyLine(l) || isComment(l) }
+        .dropWhile  { l => !region.startsAt(l)            }
+        .takeWhile  { l => !region.endsAt(l)              }
+        .filterNot  { l => isEmptyLine(l) || isComment(l) }
 
   case class Region(val startsAt: Line => Boolean, val endsAt: Line => Boolean)
 
@@ -69,10 +69,10 @@ case object igblastn {
       endsAt    = isEmptyLine
     )
 
-  val cdrAnnotation: Region =
+  val vAnnotation: Region =
     Region(
       startsAt  = _ startsWith "# Alignment summary between query and top germline V gene hit",
-      endsAt    = isEmptyLine
+      endsAt    = _ startsWith "Total"
     )
 
   val hitTable: Region =

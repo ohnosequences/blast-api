@@ -49,6 +49,18 @@ class TCRAOutput extends org.scalatest.FunSuite {
         .map({ vj_junction.parse(_) })
   }
 
+  test("parse V annotation") {
+
+    val headers =
+      v_annotation.keys.types map typeLabel asList
+
+    val parsed =
+      regionFrom(vAnnotation, lines)
+        .map(tabSeparatedFields)
+        .map({ fields => groupFieldsWithHeaders(fields, headers) })
+        .map({ v_annotation.parse(_) })
+  }
+
   // TODO implement this; need to join regions with some logic
   ignore("parse CDR1 annotation") {}
   ignore("parse CDR2 annotation") {}

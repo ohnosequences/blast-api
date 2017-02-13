@@ -159,9 +159,9 @@ case object igblastn extends AnyBlastCommand {
           |[AnyOutputField]
       )
 
-      case object cdr1_annotation extends BlastOutputRecord(stdCDRfields)
-      case object cdr2_annotation extends BlastOutputRecord(stdCDRfields)
-      case object cdr3_annotation extends BlastOutputRecord(
+      case object v_annotation extends BlastOutputRecord(stdCDRfields)
+
+      case object cdr3_sequences extends BlastOutputRecord(
         CDR3_nucleotides  :×:
         CDR3_aminoacids   :×:
         stdCDRfields
@@ -220,13 +220,14 @@ case object igblastn extends AnyBlastCommand {
     )
 
     val stdCDRfields =
-      sstart    :×:
-      send      :×:
-      length    :×:
-      nident    :×: // or should it be `positive`?
-      mismatch  :×:
-      gaps      :×:
-      pident    :×:
+      V_annotation  :×:
+      sstart        :×:
+      send          :×:
+      length        :×:
+      nident        :×: // or should it be `positive`?
+      mismatch      :×:
+      gaps          :×:
+      pident        :×:
         |[AnyOutputField]
 
     /*
@@ -395,6 +396,32 @@ case object igblastn extends AnyBlastCommand {
       Total	N/A	N/A	286	277	2	7	96.9
       ```
     */
+    sealed trait V_annotations
+    case object V_annotations {
+      case object FR1   extends V_annotations
+      case object CDR1  extends V_annotations
+      case object FR2   extends V_annotations
+      case object CDR2  extends V_annotations
+      case object FR3   extends V_annotations
+      case object CDR3  extends V_annotations
+    }
+
+    case object V_annotation extends OutputField[V_annotations]
+    implicit val V_annotationParser: DenotationParser[V_annotation.type,V_annotations,String] =
+      new DenotationParser(V_annotation, V_annotation.label)(
+        {
+          str: String => str match {
+            case "FR1-IMGT"             => Some(V_annotations.FR1)
+            case "CDR1-IMGT"            => Some(V_annotations.CDR1)
+            case "FR2-IMGT"             => Some(V_annotations.FR2)
+            case "CDR2-IMGT"            => Some(V_annotations.CDR2)
+            case "FR3-IMGT"             => Some(V_annotations.FR3)
+            case "CDR3-IMGT (germline)" => Some(V_annotations.CDR3)
+            case _                      => None
+          }
+        }
+      )
+
 
     /*
       #### CDR3 annotation
