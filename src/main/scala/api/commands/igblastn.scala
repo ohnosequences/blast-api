@@ -144,7 +144,7 @@ case object igblastn extends AnyBlastCommand {
       case object vj_annotation extends BlastOutputRecord(
         Vgene       :×:
         Jgene       :×:
-        // chainType   :×: useless? already known
+        chainType   :×: // useless? already known
         stopCodon   :×:
         frame       :×:
         productive  :×:
@@ -249,17 +249,77 @@ case object igblastn extends AnyBlastCommand {
       case object VH extends ChainTypes
     }
 
-    case object Vgene       extends OutputField[String]
-    case object Dgene       extends OutputField[String]
-    case object Jgene       extends OutputField[String]
+    implicit val chainTypeParser: DenotationParser[chainType.type,ChainTypes,String] =
+      new DenotationParser(chainType, chainType.label)(
+        {
+          str: String => str match {
+            case "VA" => Some(ChainTypes.VA)
+            case "VB" => Some(ChainTypes.VB)
+            case "VD" => Some(ChainTypes.VD)
+            case "VG" => Some(ChainTypes.VG)
+            case "VH" => Some(ChainTypes.VH)
+            case _    => None
+          }
+        }
+      )
+
     case object chainType   extends OutputField[ChainTypes]
+
+    case object Vgene       extends OutputField[String]
+    implicit val VgeneParser: DenotationParser[Vgene.type, String, String] =
+      new DenotationParser(Vgene, Vgene.label)({ Some(_) })
+
+    case object Dgene       extends OutputField[String]
+    implicit val DgeneParser: DenotationParser[Dgene.type, String, String] =
+      new DenotationParser(Dgene, Dgene.label)({ Some(_) })
+
+    case object Jgene       extends OutputField[String]
+    implicit val JgeneParser: DenotationParser[Jgene.type, String, String] =
+      new DenotationParser(Jgene, Jgene.label)({ Some(_) })
+
     /* whether the *rearranged?* gene contains a stop codon */
     case object stopCodon   extends OutputField[Boolean]
+    implicit val stopCodonParser: DenotationParser[stopCodon.type, Boolean, String] =
+      new DenotationParser(stopCodon, stopCodon.label)(
+        {
+          s: String => s.trim match {
+            case "Yes"  => Some(true)
+            case "No"   => Some(false)
+            case _      => None
+          }
+        }
+      )
+
     /* whether the *rearranged?* gene is in-frame */
     case object frame       extends OutputField[Boolean]
+    implicit val frameParser: DenotationParser[frame.type, Boolean, String] =
+      new DenotationParser(frame, frame.label)(
+        {
+          s: String => s match {
+            case "In-frame" => Some(true)
+            case "???"      => Some(false) // TODO get String constant for this case
+            case _          => None
+          }
+        }
+      )
+
     /* same as !(stopCodon) && frame */
     case object productive  extends OutputField[Boolean]
+    implicit val productiveParser: DenotationParser[productive.type, Boolean, String] =
+      new DenotationParser(productive, productive.label)(
+        {
+          s: String => s match {
+            case "Yes"  => Some(true)
+            case "No"   => Some(false)
+            case _      => None
+          }
+        }
+      )
+
     case object strand      extends OutputField[String]
+    implicit val strandParser: DenotationParser[strand.type, String, String] =
+      new DenotationParser(strand, strand.label)({ Some(_) })
+
     /*
       ### VDJ junction
 
@@ -293,14 +353,31 @@ case object igblastn extends AnyBlastCommand {
       3. something else (what?)
     */
     case object V_end       extends OutputField[String]
+    implicit val V_endParser: DenotationParser[V_end.type, String, String] =
+      new DenotationParser(V_end, V_end.label)({ Some(_) })
+
     /* nucleotides can be inside parentheses here. */
     case object VD_junction extends OutputField[String]
+    implicit val VD_junctionParser: DenotationParser[VD_junction.type, String, String] =
+      new DenotationParser(VD_junction, VD_junction.label)({ Some(_) })
+
     /* nucleotides can be inside parentheses here. */
     case object VJ_junction extends OutputField[String]
+    implicit val VJ_junctionParser: DenotationParser[VJ_junction.type, String, String] =
+      new DenotationParser(VJ_junction, VJ_junction.label)({ Some(_) })
+
     case object D_region    extends OutputField[String]
+    implicit val D_regionParser: DenotationParser[D_region.type, String, String] =
+      new DenotationParser(D_region, D_region.label)({ Some(_) })
+
     /* nucleotides can be inside parentheses here. */
     case object DJ_junction extends OutputField[String]
+    implicit val DJ_junctionParser: DenotationParser[DJ_junction.type, String, String] =
+      new DenotationParser(DJ_junction, DJ_junction.label)({ Some(_) })
+
     case object J_start     extends OutputField[String]
+    implicit val J_startParser: DenotationParser[J_start.type, String, String] =
+      new DenotationParser(J_start, J_start.label)({ Some(_) })
 
     /*
       ### CDRx annotation
@@ -329,8 +406,13 @@ case object igblastn extends AnyBlastCommand {
       CDR3	GCAATGGAGGTGGATAGCAGCTATAAATTGATC	AMEVDSSYKLI
       ```
     */
-    case object CDR3_nucleotides  extends OutputField[Option[String]]
-    case object CDR3_aminoacids   extends OutputField[Option[String]]
+    case object CDR3_nucleotides  extends OutputField[String]
+    implicit val CDR3_nucleotidesParser: DenotationParser[CDR3_nucleotides.type, String, String] =
+      new DenotationParser(CDR3_nucleotides, CDR3_nucleotides.label)({ Some(_) })
+
+    case object CDR3_aminoacids   extends OutputField[String]
+    implicit val CDR3_aminoacidsParser: DenotationParser[CDR3_aminoacids.type, String, String] =
+      new DenotationParser(CDR3_aminoacids, CDR3_aminoacids.label)({ Some(_) })
 
     /*
       ### Hit table
@@ -360,6 +442,17 @@ case object igblastn extends AnyBlastCommand {
       case object D extends SegmentTypes
       case object J extends SegmentTypes
     }
-    case object segmentType extends OutputField[ChainTypes]
+    case object segmentType extends OutputField[SegmentTypes]
+    implicit val segmentTypeParser: DenotationParser[segmentType.type,SegmentTypes,String] =
+      new DenotationParser(segmentType, segmentType.label)(
+        {
+          str: String => str match {
+            case "V"  => Some(SegmentTypes.V)
+            case "D"  => Some(SegmentTypes.D)
+            case "J"  => Some(SegmentTypes.J)
+            case _    => None
+          }
+        }
+      )
   }
 }

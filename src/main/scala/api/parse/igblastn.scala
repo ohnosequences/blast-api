@@ -26,9 +26,58 @@ import ohnosequences.cosas._, types._, klists._, records._
 */
 case object igblastn {
 
-  case object linePrefixes {
+  type Line   = String
+  type Field  = String
+  type Header = String
 
-    val query                 = "# Query:"
-    val domainClassification  = "# Domain classification requested:"
-  }
+  val tabSeparatedFields: Line => Seq[Field] =
+    _.split("\t").map(_.trim)
+
+  val groupFieldsWithHeaders: (Seq[Field], Seq[Header]) => Map[Header, Field] =
+    (fields, headers) => (headers zip fields) toMap
+
+  val isEmptyLine: Line => Boolean =
+    _.isEmpty
+
+  val isComment: Line => Boolean =
+    _ startsWith "#"
+
+  val regionFrom: (Region, Seq[Line]) => Seq[Line] =
+    (region, lines) =>
+      lines
+        .dropWhile{ l => !region.startsAt(l) }
+        .takeWhile { l => !region.endsAt(l) }
+        .filterNot { l => isEmptyLine(l) || isComment(l) }
+
+  case class Region(val startsAt: Line => Boolean, val endsAt: Line => Boolean)
+
+  val vdjAnnotation: Region =
+    Region(
+      startsAt  = _ startsWith "# V-(D)-J rearrangement summary for query sequence",
+      endsAt    = isEmptyLine
+    )
+
+  val vdjSequences: Region =
+    Region(
+      startsAt  = _ startsWith "# V-(D)-J junction details based on top germline gene matches",
+      endsAt    = isEmptyLine
+    )
+
+  val cdr3Sequences: Region =
+    Region(
+      startsAt  = _ startsWith "# Sub-region sequence details",
+      endsAt    = isEmptyLine
+    )
+
+  val cdrAnnotation: Region =
+    Region(
+      startsAt  = _ startsWith "# Alignment summary between query and top germline V gene hit",
+      endsAt    = isEmptyLine
+    )
+
+  val hitTable: Region =
+    Region(
+      startsAt  = _ startsWith "# Hit table",
+      endsAt    = isEmptyLine
+    )
 }
