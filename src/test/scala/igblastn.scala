@@ -13,56 +13,75 @@ class TCRAOutput extends org.scalatest.FunSuite {
   lazy val lines =
     io.Source.fromFile("data/igblastn/tcra.out").getLines.toList
 
+  def allRight[X,Y](s: Seq[Either[X,Y]]) = ! s.exists(_.isLeft)
+
   test("parse hit table") {
 
     val headers =
-      hitTable.keys.types map typeLabel asList
+      HitTable.keys.types map typeLabel asList
 
     val parsed =
-      regionFrom(igblastn.hitTable, lines)
+      regionFrom(hitTable, lines)
         .map(tabSeparatedFields)
         .map({ fields => groupFieldsWithHeaders(fields, headers) })
-        .map({ hitTable.parse(_) })
+        .map({ HitTable.parse(_) })
+
+    assert { allRight(parsed) }
   }
 
-  test("parse VJ annotation") {
+  test("parse VJ rearrangement summary") {
 
     val headers =
-      vj_annotation.keys.types map typeLabel asList
+      VJRearrangementSummary.keys.types map typeLabel asList
 
     val parsed =
       regionFrom(vdjAnnotation, lines)
         .map(tabSeparatedFields)
         .map({ fields => groupFieldsWithHeaders(fields, headers) })
-        .map({ vj_annotation.parse(_) })
+        .map({ VJRearrangementSummary.parse(_) })
+
+    assert { allRight(parsed) }
   }
 
-  test("parse VJ junction") {
+  test("parse CDR3 sequence") {
 
     val headers =
-      vj_junction.keys.types map typeLabel asList
+      CDR3Sequence.keys.types map typeLabel asList
+
+    val parsed =
+      regionFrom(cdr3Sequences, lines)
+        .map(tabSeparatedFields).map(_.tail) // ugly I know
+        .map({ fields => groupFieldsWithHeaders(fields, headers) })
+        .map({ CDR3Sequence.parse(_) })
+
+    assert { allRight(parsed) }
+  }
+
+  test("parse VJ junction details") {
+
+    val headers =
+      VJJunctionDetails.keys.types map typeLabel asList
 
     val parsed =
       regionFrom(vdjSequences, lines)
         .map(tabSeparatedFields)
         .map({ fields => groupFieldsWithHeaders(fields, headers) })
-        .map({ vj_junction.parse(_) })
+        .map({ VJJunctionDetails.parse(_) })
+
+    assert { allRight(parsed) }
   }
 
-  test("parse V annotation") {
+  test("parse V region annotations") {
 
     val headers =
-      v_annotation.keys.types map typeLabel asList
+      VRegionAnnotations.keys.types map typeLabel asList
 
     val parsed =
       regionFrom(vAnnotation, lines)
         .map(tabSeparatedFields)
         .map({ fields => groupFieldsWithHeaders(fields, headers) })
-        .map({ v_annotation.parse(_) })
-  }
+        .map({ VRegionAnnotations.parse(_) })
 
-  // TODO implement this; need to join regions with some logic
-  ignore("parse CDR1 annotation") {}
-  ignore("parse CDR2 annotation") {}
-  ignore("parse CDR3 annotation") {}
+    assert { allRight(parsed) }
+  }
 }

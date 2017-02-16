@@ -134,17 +134,17 @@ case object igblastn extends AnyBlastCommand {
   /*
     ## igblastn output
 
-    We have different outputs depending on the type of query sequences we want to analyze.
+    We have different outputs depending on the type of query sequences.
   */
   case object output {
 
     case object TCRA {
 
       // possibly not all of these records will be truly specific; we'll see later
-      case object vj_annotation extends BlastOutputRecord(
-        Vgene       :×:
-        Jgene       :×:
-        chainType   :×: // useless? already known
+      case object VJRearrangementSummary extends BlastOutputRecord(
+        topVGene    :×:
+        topJGene    :×:
+        chainType   :×:
         stopCodon   :×:
         frame       :×:
         productive  :×:
@@ -152,29 +152,25 @@ case object igblastn extends AnyBlastCommand {
           |[AnyOutputField]
       )
 
-      case object vj_junction extends BlastOutputRecord(
-        V_end       :×:
-        VJ_junction :×:
-        J_start     :×:
+      case object VJJunctionDetails extends BlastOutputRecord(
+        VEnd       :×:
+        VJJunction :×:
+        JStart     :×:
           |[AnyOutputField]
       )
 
-      case object v_annotation extends BlastOutputRecord(stdCDRfields)
-
-      case object cdr3_sequences extends BlastOutputRecord(
-        CDR3_nucleotides  :×:
-        CDR3_aminoacids   :×:
-        stdCDRfields
-      )
+      case object CDR3Sequence        extends BlastOutputRecord(stdCDR3SeqFields)
+      case object VRegionAnnotations  extends BlastOutputRecord(stdVRegionAnnotationFields)
+      case object HitTable            extends BlastOutputRecord(stdHitTableFields)
     }
 
     case object TCRB {
 
-      case object vdj_annotation extends BlastOutputRecord(
-        Vgene       :×:
-        Dgene       :×:
-        Jgene       :×:
-        // chainType   :×: useless? already known
+      case object VDJRearrangementSummary extends BlastOutputRecord(
+        topVGene    :×:
+        topDGene    :×:
+        topJGene    :×:
+        chainType   :×:
         stopCodon   :×:
         frame       :×:
         productive  :×:
@@ -182,26 +178,27 @@ case object igblastn extends AnyBlastCommand {
           |[AnyOutputField]
       )
 
-      case object vdj_junction extends BlastOutputRecord(
-        V_end       :×:
-        VD_junction :×:
-        D_region    :×:
-        DJ_junction :×:
-        J_start     :×:
+      case object VDJunctionDetails extends BlastOutputRecord(
+        VEnd       :×:
+        VDJunction :×:
+        DRegion    :×:
+        DJJunction :×:
+        JStart     :×:
           |[AnyOutputField]
       )
 
-      case object cdr1_annotation extends BlastOutputRecord(stdCDRfields)
-      case object cdr2_annotation extends BlastOutputRecord(stdCDRfields)
-      case object cdr3_annotation extends BlastOutputRecord(
-        CDR3_nucleotides  :×:
-        CDR3_aminoacids   :×:
-        stdCDRfields
-      )
+      case object CDR3Sequence        extends BlastOutputRecord(stdCDR3SeqFields)
+      case object VRegionAnnotations  extends BlastOutputRecord(stdVRegionAnnotationFields)
+      case object HitTable            extends BlastOutputRecord(stdHitTableFields)
     }
 
+    val stdCDR3SeqFields =
+      CDR3Nucleotides  :×:
+      CDR3Aminoacids   :×:
+        |[AnyOutputField]
+
     // hit tables are common to all outputs (are they?)
-    case object hitTable extends BlastOutputRecord(
+    val stdHitTableFields =
       segmentType         :×:
       qseqid              :×:
       sseqid              :×:
@@ -217,17 +214,16 @@ case object igblastn extends AnyBlastCommand {
       outputFields.evalue :×:
       bitscore            :×:
         |[AnyOutputField]
-    )
 
-    val stdCDRfields =
-      V_annotation  :×:
-      sstart        :×:
-      send          :×:
-      length        :×:
-      nident        :×: // or should it be `positive`?
-      mismatch      :×:
-      gaps          :×:
-      pident        :×:
+    val stdVRegionAnnotationFields =
+      VRegion   :×:
+      sstart    :×:
+      send      :×:
+      length    :×:
+      nident    :×: // TODO should it be `positive` instead?
+      mismatch  :×:
+      gaps      :×:
+      pident    :×:
         |[AnyOutputField]
 
     /*
@@ -266,17 +262,18 @@ case object igblastn extends AnyBlastCommand {
 
     case object chainType   extends OutputField[ChainTypes]
 
-    case object Vgene       extends OutputField[String]
-    implicit val VgeneParser: DenotationParser[Vgene.type, String, String] =
-      new DenotationParser(Vgene, Vgene.label)({ Some(_) })
+    // TODO these top* fields are actually a set, delimited by commas.
+    case object topVGene       extends OutputField[String]
+    implicit val topVGeneParser: DenotationParser[topVGene.type, String, String] =
+      new DenotationParser(topVGene, topVGene.label)({ Some(_) })
 
-    case object Dgene       extends OutputField[String]
-    implicit val DgeneParser: DenotationParser[Dgene.type, String, String] =
-      new DenotationParser(Dgene, Dgene.label)({ Some(_) })
+    case object topDGene       extends OutputField[String]
+    implicit val topDGeneParser: DenotationParser[topDGene.type, String, String] =
+      new DenotationParser(topDGene, topDGene.label)({ Some(_) })
 
-    case object Jgene       extends OutputField[String]
-    implicit val JgeneParser: DenotationParser[Jgene.type, String, String] =
-      new DenotationParser(Jgene, Jgene.label)({ Some(_) })
+    case object topJGene       extends OutputField[String]
+    implicit val topJGeneParser: DenotationParser[topJGene.type, String, String] =
+      new DenotationParser(topJGene, topJGene.label)({ Some(_) })
 
     /* whether the *rearranged?* gene contains a stop codon */
     case object stopCodon   extends OutputField[Boolean]
@@ -353,32 +350,32 @@ case object igblastn extends AnyBlastCommand {
       2. have one record with an Option value (ugly)
       3. something else (what?)
     */
-    case object V_end       extends OutputField[String]
-    implicit val V_endParser: DenotationParser[V_end.type, String, String] =
-      new DenotationParser(V_end, V_end.label)({ Some(_) })
+    case object VEnd       extends OutputField[String]
+    implicit val VEndParser: DenotationParser[VEnd.type, String, String] =
+      new DenotationParser(VEnd, VEnd.label)({ Some(_) })
 
     /* nucleotides can be inside parentheses here. */
-    case object VD_junction extends OutputField[String]
-    implicit val VD_junctionParser: DenotationParser[VD_junction.type, String, String] =
-      new DenotationParser(VD_junction, VD_junction.label)({ Some(_) })
+    case object VDJunction extends OutputField[String]
+    implicit val VDJunctionParser: DenotationParser[VDJunction.type, String, String] =
+      new DenotationParser(VDJunction, VDJunction.label)({ Some(_) })
 
     /* nucleotides can be inside parentheses here. */
-    case object VJ_junction extends OutputField[String]
-    implicit val VJ_junctionParser: DenotationParser[VJ_junction.type, String, String] =
-      new DenotationParser(VJ_junction, VJ_junction.label)({ Some(_) })
+    case object VJJunction extends OutputField[String]
+    implicit val VJJunctionParser: DenotationParser[VJJunction.type, String, String] =
+      new DenotationParser(VJJunction, VJJunction.label)({ Some(_) })
 
-    case object D_region    extends OutputField[String]
-    implicit val D_regionParser: DenotationParser[D_region.type, String, String] =
-      new DenotationParser(D_region, D_region.label)({ Some(_) })
+    case object DRegion    extends OutputField[String]
+    implicit val DRegionParser: DenotationParser[DRegion.type, String, String] =
+      new DenotationParser(DRegion, DRegion.label)({ Some(_) })
 
     /* nucleotides can be inside parentheses here. */
-    case object DJ_junction extends OutputField[String]
-    implicit val DJ_junctionParser: DenotationParser[DJ_junction.type, String, String] =
-      new DenotationParser(DJ_junction, DJ_junction.label)({ Some(_) })
+    case object DJJunction extends OutputField[String]
+    implicit val DJJunctionParser: DenotationParser[DJJunction.type, String, String] =
+      new DenotationParser(DJJunction, DJJunction.label)({ Some(_) })
 
-    case object J_start     extends OutputField[String]
-    implicit val J_startParser: DenotationParser[J_start.type, String, String] =
-      new DenotationParser(J_start, J_start.label)({ Some(_) })
+    case object JStart      extends OutputField[String]
+    implicit val JStartParser: DenotationParser[JStart.type, String, String] =
+      new DenotationParser(JStart, JStart.label)({ Some(_) })
 
     /*
       ### CDRx annotation
@@ -396,27 +393,27 @@ case object igblastn extends AnyBlastCommand {
       Total	N/A	N/A	286	277	2	7	96.9
       ```
     */
-    sealed trait V_annotations
-    case object V_annotations {
-      case object FR1   extends V_annotations
-      case object CDR1  extends V_annotations
-      case object FR2   extends V_annotations
-      case object CDR2  extends V_annotations
-      case object FR3   extends V_annotations
-      case object CDR3  extends V_annotations
+    sealed trait VRegions
+    case object VRegions {
+      case object FR1   extends VRegions
+      case object CDR1  extends VRegions
+      case object FR2   extends VRegions
+      case object CDR2  extends VRegions
+      case object FR3   extends VRegions
+      case object CDR3  extends VRegions
     }
 
-    case object V_annotation extends OutputField[V_annotations]
-    implicit val V_annotationParser: DenotationParser[V_annotation.type,V_annotations,String] =
-      new DenotationParser(V_annotation, V_annotation.label)(
+    case object VRegion extends OutputField[VRegions]
+    implicit val VRegionParser: DenotationParser[VRegion.type,VRegions,String] =
+      new DenotationParser(VRegion, VRegion.label)(
         {
           str: String => str match {
-            case "FR1-IMGT"             => Some(V_annotations.FR1)
-            case "CDR1-IMGT"            => Some(V_annotations.CDR1)
-            case "FR2-IMGT"             => Some(V_annotations.FR2)
-            case "CDR2-IMGT"            => Some(V_annotations.CDR2)
-            case "FR3-IMGT"             => Some(V_annotations.FR3)
-            case "CDR3-IMGT (germline)" => Some(V_annotations.CDR3)
+            case "FR1-IMGT"             => Some(VRegions.FR1)
+            case "CDR1-IMGT"            => Some(VRegions.CDR1)
+            case "FR2-IMGT"             => Some(VRegions.FR2)
+            case "CDR2-IMGT"            => Some(VRegions.CDR2)
+            case "FR3-IMGT"             => Some(VRegions.FR3)
+            case "CDR3-IMGT (germline)" => Some(VRegions.CDR3)
             case _                      => None
           }
         }
@@ -433,13 +430,13 @@ case object igblastn extends AnyBlastCommand {
       CDR3	GCAATGGAGGTGGATAGCAGCTATAAATTGATC	AMEVDSSYKLI
       ```
     */
-    case object CDR3_nucleotides  extends OutputField[String]
-    implicit val CDR3_nucleotidesParser: DenotationParser[CDR3_nucleotides.type, String, String] =
-      new DenotationParser(CDR3_nucleotides, CDR3_nucleotides.label)({ Some(_) })
+    case object CDR3Nucleotides  extends OutputField[String]
+    implicit val CDR3NucleotidesParser: DenotationParser[CDR3Nucleotides.type, String, String] =
+      new DenotationParser(CDR3Nucleotides, CDR3Nucleotides.label)({ Some(_) })
 
-    case object CDR3_aminoacids   extends OutputField[String]
-    implicit val CDR3_aminoacidsParser: DenotationParser[CDR3_aminoacids.type, String, String] =
-      new DenotationParser(CDR3_aminoacids, CDR3_aminoacids.label)({ Some(_) })
+    case object CDR3Aminoacids   extends OutputField[String]
+    implicit val CDR3AminoacidsParser: DenotationParser[CDR3Aminoacids.type, String, String] =
+      new DenotationParser(CDR3Aminoacids, CDR3Aminoacids.label)({ Some(_) })
 
     /*
       ### Hit table
