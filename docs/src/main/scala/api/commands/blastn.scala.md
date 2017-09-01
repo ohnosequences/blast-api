@@ -13,7 +13,6 @@ case object blastn extends AnyBlastCommand {
   type Options = options.type
   case object options extends RecordType(
     num_threads     :×:
-    task            :×:
     evalue          :×:
     max_target_seqs :×:
     strand          :×:
@@ -34,7 +33,6 @@ case object blastn extends AnyBlastCommand {
 
   type OptionsVals =
     (num_threads.type     := num_threads.Raw)     ::
-    (task.type            := task.Raw)            ::
     (evalue.type          := evalue.Raw)          ::
     (max_target_seqs.type := max_target_seqs.Raw) ::
     (strand.type          := strand.Raw)          ::
@@ -52,7 +50,6 @@ Default values match those documented in [the official BLAST docs](http://www.nc
 ```scala
   val defaults: Options := OptionsVals = options (
     num_threads(1)        ::
-    task(blastn: Task)    ::
     evalue(BigDecimal(10))::
     max_target_seqs(500)  ::
     strand(Strands.both)  ::
@@ -91,17 +88,6 @@ Default values match those documented in [the official BLAST docs](http://www.nc
     ppos.type       :×:
     |[AnyOutputField]
 
-  // task depends on each command, that's why it is here.
-  case object task extends BlastOption[Task](t => t.name) {
-    def apply(t: Task): this.type := Task = this := t
-  }
-  sealed abstract class Task(val name: String)
-  case object megablast       extends Task( "megablast" )
-  case object dcMegablast     extends Task( "dc-megablast" )
-  case object blastn          extends Task( "blastn" )
-  case object blastnShort     extends Task( "blastn-short" )
-  case object rmblastn        extends Task( "rmblastn" )
-
   def apply[R <: AnyBlastOutputRecord.For[this.type]](
     outputRecord: R,
     argumentValues: ArgumentsVals,
@@ -114,16 +100,16 @@ Default values match those documented in [the official BLAST docs](http://www.nc
 
 
 
-[test/scala/CommandGeneration.scala]: ../../../../test/scala/CommandGeneration.scala.md
-[test/scala/OutputParsing.scala]: ../../../../test/scala/OutputParsing.scala.md
-[test/scala/OutputFieldsSpecification.scala]: ../../../../test/scala/OutputFieldsSpecification.scala.md
-[main/scala/api/outputFields.scala]: ../outputFields.scala.md
-[main/scala/api/options.scala]: ../options.scala.md
-[main/scala/api/package.scala]: ../package.scala.md
-[main/scala/api/expressions.scala]: ../expressions.scala.md
 [main/scala/api/commands/blastn.scala]: blastn.scala.md
 [main/scala/api/commands/blastp.scala]: blastp.scala.md
-[main/scala/api/commands/tblastx.scala]: tblastx.scala.md
-[main/scala/api/commands/tblastn.scala]: tblastn.scala.md
 [main/scala/api/commands/blastx.scala]: blastx.scala.md
 [main/scala/api/commands/makeblastdb.scala]: makeblastdb.scala.md
+[main/scala/api/commands/tblastn.scala]: tblastn.scala.md
+[main/scala/api/commands/tblastx.scala]: tblastx.scala.md
+[main/scala/api/expressions.scala]: ../expressions.scala.md
+[main/scala/api/options.scala]: ../options.scala.md
+[main/scala/api/outputFields.scala]: ../outputFields.scala.md
+[main/scala/api/package.scala]: ../package.scala.md
+[test/scala/CommandGeneration.scala]: ../../../../test/scala/CommandGeneration.scala.md
+[test/scala/OutputFieldsSpecification.scala]: ../../../../test/scala/OutputFieldsSpecification.scala.md
+[test/scala/OutputParsing.scala]: ../../../../test/scala/OutputParsing.scala.md
