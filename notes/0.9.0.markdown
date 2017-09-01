@@ -1,0 +1,4 @@
+
+- add preliminary support for IgBLAST
+- more arguments and options for makeblastdb
+- mire arguments and options for blastp
