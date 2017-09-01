@@ -34,9 +34,10 @@ class CommandGeneration extends org.scalatest.FunSuite {
 
     val mkdb = makeblastdb(
       argumentValues =
-        in(file"refs.fasta")          ::
-        input_type(DBInputType.fasta) ::
-        dbtype(BlastDBType.nucl)      ::
+        in(new File("refs.fasta"))        ::
+        input_type(DBInputType.fasta)     ::
+        dbtype(BlastDBType.nucl)          ::
+        out(new File("data/out/db/refs")) ::
         *[AnyDenotation],
       optionValues =
         (makeblastdb.defaults update title("refs.fasta")).value

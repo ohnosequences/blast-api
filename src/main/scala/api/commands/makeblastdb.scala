@@ -5,7 +5,7 @@ import ohnosequences.cosas._, types._, records._, klists._
 // type makeblastdb = makeblastdb.type
 case object makeblastdb extends AnyBlastCommand {
 
-  case object arguments extends RecordType(in :×: input_type :×: dbtype :×: |[AnyBlastOption])
+  case object arguments extends RecordType(in :×: input_type :×: dbtype :×: out :×: |[AnyBlastOption])
   type Arguments = arguments.type
 
   // TODO: figure out the full list of options here
@@ -18,6 +18,7 @@ case object makeblastdb extends AnyBlastCommand {
     (in.type         := in.Raw)         ::
     (input_type.type := input_type.Raw) ::
     (dbtype.type     := dbtype.Raw)     ::
+    (out.type        := out.Raw)        ::
     *[AnyDenotation]
 
   type OptionsVals =
@@ -27,7 +28,7 @@ case object makeblastdb extends AnyBlastCommand {
 
   val defaults: Options := OptionsVals = options(
     title("")             ::
-    parse_seqids(false)   ::    
+    parse_seqids(false)   ::
     *[AnyDenotation]
   )
 
