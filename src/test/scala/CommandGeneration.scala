@@ -31,5 +31,20 @@ class CommandGeneration extends org.scalatest.FunSuite {
         blastn.defaults.value.toSeq ++
         Seq("-outfmt", "10 qseqid sseqid")
     }
+
+    val mkdb = makeblastdb(
+      argumentValues =
+        in(new File("refs.fasta"))        ::
+        input_type(DBInputType.fasta)     ::
+        dbtype(BlastDBType.nucl)          ::
+        out(new File("data/out/db/refs")) ::
+        *[AnyDenotation],
+      optionValues =
+        (makeblastdb.defaults update title("refs.fasta")).value
+    )
+
+    import sys.process._
+
+    mkdb.toSeq.!!
   }
 }
