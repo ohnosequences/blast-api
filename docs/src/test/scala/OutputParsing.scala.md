@@ -40,18 +40,16 @@ class ParseBlastOutput extends org.scalatest.FunSuite {
 
     val blastOutput: File = new File("blastn.test3.out.txt")
 
-    rows(blastOutput)(outRecord.keys.types map typeLabel asList) map { row => outRecord.parse(row) } foreach { optRec =>
-
-      optRec match {
-
-        case Right(b) => {
-          println("correctly parsed record:")
-          println( b.value map denotationValue )
-        }
-
-        case Left(v)  => println{ s"oh, an error: ${v}" }
+    val allOk =
+      (rows(blastOutput)(outRecord.keys.types map typeLabel asList) map { row => outRecord.parse(row) }).foldLeft(true){
+        (flag,optRec) =>
+          optRec match {
+            case Right(_) => flag
+            case Left(_)  => false
       }
     }
+
+    assert { allOk }
   }
 }
 
@@ -63,6 +61,7 @@ class ParseBlastOutput extends org.scalatest.FunSuite {
 [test/scala/CommandGeneration.scala]: CommandGeneration.scala.md
 [test/scala/OutputParsing.scala]: OutputParsing.scala.md
 [test/scala/OutputFieldsSpecification.scala]: OutputFieldsSpecification.scala.md
+[test/scala/igblastn.scala]: igblastn.scala.md
 [main/scala/api/outputFields.scala]: ../../main/scala/api/outputFields.scala.md
 [main/scala/api/options.scala]: ../../main/scala/api/options.scala.md
 [main/scala/api/package.scala]: ../../main/scala/api/package.scala.md

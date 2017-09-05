@@ -71,6 +71,7 @@ case class BlastOutputRecordOps[R <: api.AnyBlastOutputRecord](val rec: R) exten
 [test/scala/CommandGeneration.scala]: ../../../test/scala/CommandGeneration.scala.md
 [test/scala/OutputParsing.scala]: ../../../test/scala/OutputParsing.scala.md
 [test/scala/OutputFieldsSpecification.scala]: ../../../test/scala/OutputFieldsSpecification.scala.md
+[test/scala/igblastn.scala]: ../../../test/scala/igblastn.scala.md
 [main/scala/api/outputFields.scala]: outputFields.scala.md
 [main/scala/api/options.scala]: options.scala.md
 [main/scala/api/package.scala]: package.scala.md

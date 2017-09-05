@@ -190,10 +190,10 @@ End of alignment in subject
 
   // means Bit score
   type bitscore = bitscore.type
-  case object bitscore  extends OutputField[Long]
-  implicit val bitscoreParser: DenotationParser[bitscore,Long,String] =
-    new DenotationParser(bitscore, bitscore.label)(longParser)
-  implicit val bitscoreSerializer: DenotationSerializer[bitscore,Long,String] =
+  case object bitscore  extends OutputField[Double]
+  implicit val bitscoreParser: DenotationParser[bitscore,Double,String] =
+    new DenotationParser(bitscore, bitscore.label)(doubleParser)
+  implicit val bitscoreSerializer: DenotationSerializer[bitscore,Double,String] =
     new DenotationSerializer(bitscore, bitscore.label)({ v => Some(v.toString) })
 
   // means Raw score
@@ -315,6 +315,7 @@ End of alignment in subject
 [test/scala/CommandGeneration.scala]: ../../../test/scala/CommandGeneration.scala.md
 [test/scala/OutputParsing.scala]: ../../../test/scala/OutputParsing.scala.md
 [test/scala/OutputFieldsSpecification.scala]: ../../../test/scala/OutputFieldsSpecification.scala.md
+[test/scala/igblastn.scala]: ../../../test/scala/igblastn.scala.md
 [main/scala/api/outputFields.scala]: outputFields.scala.md
 [main/scala/api/options.scala]: options.scala.md
 [main/scala/api/package.scala]: package.scala.md
