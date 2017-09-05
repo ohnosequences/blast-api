@@ -253,7 +253,6 @@ case object DBInputType {
   case object fasta     extends DBInputType
 }
 
-
 case object dbtype extends BlastOption[BlastDBType](t => t.toString)
 
 sealed trait BlastDBType
@@ -261,6 +260,8 @@ case object BlastDBType {
   case object nucl extends BlastDBType
   case object prot extends BlastDBType
 }
+
+case object parse_seqids extends BlastOption[Boolean](_ => "")
 
 ```
 
@@ -270,12 +271,10 @@ case object BlastDBType {
 [test/scala/CommandGeneration.scala]: ../../../test/scala/CommandGeneration.scala.md
 [test/scala/OutputParsing.scala]: ../../../test/scala/OutputParsing.scala.md
 [test/scala/OutputFieldsSpecification.scala]: ../../../test/scala/OutputFieldsSpecification.scala.md
-[test/scala/igblastn.scala]: ../../../test/scala/igblastn.scala.md
 [main/scala/api/outputFields.scala]: outputFields.scala.md
 [main/scala/api/options.scala]: options.scala.md
 [main/scala/api/package.scala]: package.scala.md
 [main/scala/api/expressions.scala]: expressions.scala.md
-[main/scala/api/parse/igblastn.scala]: parse/igblastn.scala.md
 [main/scala/api/commands/blastn.scala]: commands/blastn.scala.md
 [main/scala/api/commands/blastp.scala]: commands/blastp.scala.md
 [main/scala/api/commands/tblastx.scala]: commands/tblastx.scala.md

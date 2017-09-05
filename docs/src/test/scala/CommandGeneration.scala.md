@@ -33,6 +33,21 @@ class CommandGeneration extends org.scalatest.FunSuite {
         blastn.defaults.value.toSeq ++
         Seq("-outfmt", "10 qseqid sseqid")
     }
+
+    val mkdb = makeblastdb(
+      argumentValues =
+        in(new File("refs.fasta"))        ::
+        input_type(DBInputType.fasta)     ::
+        dbtype(BlastDBType.nucl)          ::
+        out(new File("data/out/db/refs")) ::
+        *[AnyDenotation],
+      optionValues =
+        (makeblastdb.defaults update title("refs.fasta")).value
+    )
+
+    import sys.process._
+
+    mkdb.toSeq.!!
   }
 }
 
@@ -44,12 +59,10 @@ class CommandGeneration extends org.scalatest.FunSuite {
 [test/scala/CommandGeneration.scala]: CommandGeneration.scala.md
 [test/scala/OutputParsing.scala]: OutputParsing.scala.md
 [test/scala/OutputFieldsSpecification.scala]: OutputFieldsSpecification.scala.md
-[test/scala/igblastn.scala]: igblastn.scala.md
 [main/scala/api/outputFields.scala]: ../../main/scala/api/outputFields.scala.md
 [main/scala/api/options.scala]: ../../main/scala/api/options.scala.md
 [main/scala/api/package.scala]: ../../main/scala/api/package.scala.md
 [main/scala/api/expressions.scala]: ../../main/scala/api/expressions.scala.md
-[main/scala/api/parse/igblastn.scala]: ../../main/scala/api/parse/igblastn.scala.md
 [main/scala/api/commands/blastn.scala]: ../../main/scala/api/commands/blastn.scala.md
 [main/scala/api/commands/blastp.scala]: ../../main/scala/api/commands/blastp.scala.md
 [main/scala/api/commands/tblastx.scala]: ../../main/scala/api/commands/tblastx.scala.md
