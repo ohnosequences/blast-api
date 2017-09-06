@@ -40,18 +40,16 @@ class ParseBlastOutput extends org.scalatest.FunSuite {
 
     val blastOutput: File = new File("blastn.test3.out.txt")
 
-    rows(blastOutput)(outRecord.keys.types map typeLabel asList) map { row => outRecord.parse(row) } foreach { optRec =>
-
-      optRec match {
-
-        case Right(b) => {
-          println("correctly parsed record:")
-          println( b.value map denotationValue )
-        }
-
-        case Left(v)  => println{ s"oh, an error: ${v}" }
+    val allOk =
+      (rows(blastOutput)(outRecord.keys.types map typeLabel asList) map { row => outRecord.parse(row) }).foldLeft(true){
+        (flag,optRec) =>
+          optRec match {
+            case Right(_) => flag
+            case Left(_)  => false
       }
     }
+
+    assert { allOk }
   }
 }
 

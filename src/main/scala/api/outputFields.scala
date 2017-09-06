@@ -151,10 +151,10 @@ case object outputFields {
 
   // means Bit score
   type bitscore = bitscore.type
-  case object bitscore  extends OutputField[Long]
-  implicit val bitscoreParser: DenotationParser[bitscore,Long,String] =
-    new DenotationParser(bitscore, bitscore.label)(longParser)
-  implicit val bitscoreSerializer: DenotationSerializer[bitscore,Long,String] =
+  case object bitscore  extends OutputField[Double]
+  implicit val bitscoreParser: DenotationParser[bitscore,Double,String] =
+    new DenotationParser(bitscore, bitscore.label)(doubleParser)
+  implicit val bitscoreSerializer: DenotationSerializer[bitscore,Double,String] =
     new DenotationSerializer(bitscore, bitscore.label)({ v => Some(v.toString) })
 
   // means Raw score
