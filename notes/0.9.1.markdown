@@ -1,0 +1,1 @@
+This release adds `igblastn` output description and parsing for TCR beta and alpha. See #50.
