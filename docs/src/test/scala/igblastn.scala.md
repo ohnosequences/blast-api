@@ -3,7 +3,7 @@
 package ohnosequences.blast.test
 
 import ohnosequences.blast.api.igblastn.output
-import ohnosequences.blast.api.parse._, igblastn._
+import ohnosequences.blast.api._
 import ohnosequences.cosas._, types._, klists._, records._
 
 class TCRAOutput extends org.scalatest.FunSuite {
@@ -15,81 +15,29 @@ class TCRAOutput extends org.scalatest.FunSuite {
 
   def allRight[X,Y](s: Seq[Either[X,Y]]) = ! s.exists(_.isLeft)
 
-  test("parse hit table") {
+  test("VJ Rearrangement summary") {
 
-    val headers =
-      HitTable.keys.types map typeLabel asList
-
-    val parsed =
-      regionFrom(hitTable, lines)
-        .map(tabSeparatedFields)
-        .map({ fields => groupFieldsWithHeaders(fields, headers) })
-        .map({ HitTable.parse(_) })
-
-    assert { allRight(parsed) }
+    assert { allRight(parse.igblastn.TCRA parseVJRearrangementSummary lines) }
   }
 
-  test("parse VJ rearrangement summary") {
+  test("VJ junction details") {
 
-    val headers =
-      VJRearrangementSummary.keys.types map typeLabel asList
-
-    val parsed =
-      regionFrom(vdjAnnotation, lines)
-        .map(tabSeparatedFields)
-          .map({ fields => groupFieldsWithHeaders(fields, headers) })
-          .map({ VJRearrangementSummary.parse(_) })
-
-    assert { allRight(parsed) }
+    assert { allRight(parse.igblastn.TCRA parseVJJunctionDetails lines) }
   }
 
   test("parse CDR3 sequence") {
 
-    val headers =
-      CDR3Sequence.keys.types map typeLabel asList
-
-    val fields =
-      regionFrom(cdr3Sequences, lines)
-        .map(tabSeparatedFields).map(_.tail) // ugly I know
-
-    val parsed =
-      (if(fields.length > 2) fields take 2 else fields)
-        .map({ fields => groupFieldsWithHeaders(fields, headers) })
-        .map({ CDR3Sequence.parse(_) })
-
-    assert { allRight(parsed) }
+    assert { allRight(parse.igblastn.TCRA parseCDR3Sequence lines) }
   }
 
-  test("parse VJ junction details") {
+  test("parse V Region annotations") {
 
-    val headers =
-      VJJunctionDetails.keys.types map typeLabel asList
-
-    val parsed =
-      regionFrom(vdjSequences, lines)
-        .map(tabSeparatedFields)
-        .map({ fields => groupFieldsWithHeaders(fields, headers) })
-        .map({ VJJunctionDetails.parse(_) })
-
-    assert { allRight(parsed) }
-  }
-
-  test("parse V region annotations") {
-
-    val headers =
-      VRegionAnnotations.keys.types map typeLabel asList
-
-    val parsed =
-      regionFrom(vAnnotation, lines)
-        .map(tabSeparatedFields)
-        .map({ fields => groupFieldsWithHeaders(fields, headers) })
-        .map({ VRegionAnnotations.parse(_) })
-
-    assert { allRight(parsed) }
+    assert { allRight(parse.igblastn.TCRA parseVRegionAnnotations lines) }
   }
 }
 
 /////////////////////////////////////////////////////////////////////////////////////////
+
 class TCRBOutput extends org.scalatest.FunSuite {
 
   import output._, TCRB._
@@ -99,77 +47,29 @@ class TCRBOutput extends org.scalatest.FunSuite {
 
   def allRight[X,Y](s: Seq[Either[X,Y]]) = ! s.exists(_.isLeft)
 
-  test("parse hit table") {
+  test("V(D)J Rearrangement summary") {
 
-    val headers =
-      HitTable.keys.types map typeLabel asList
-
-    val parsed =
-      regionFrom(hitTable, lines)
-        .map(tabSeparatedFields)
-        .map({ fields => groupFieldsWithHeaders(fields, headers) })
-        .map({ HitTable.parse(_) })
-
-    assert { allRight(parsed) }
+    assert { allRight(parse.igblastn.TCRB parseVDJRearrangementSummary lines) }
   }
 
-  test("parse V(D)J rearrangement summary") {
+  test("V(D)J junction details") {
 
-    val headers =
-      VDJRearrangementSummary.keys.types map typeLabel asList
-
-    val parsed =
-      regionFrom(vdjAnnotation, lines)
-        .map(tabSeparatedFields)
-        .map({ fields => groupFieldsWithHeaders(fields, headers) })
-        .map({ VDJRearrangementSummary.parse(_) })
-
-    assert { allRight(parsed) }
+    assert { allRight(parse.igblastn.TCRB parseVDJJunctionDetails lines) }
   }
 
   test("parse CDR3 sequence") {
 
-    val headers =
-      CDR3Sequence.keys.types map typeLabel asList
-
-    val fields =
-      regionFrom(cdr3Sequences, lines)
-        .map(tabSeparatedFields).map(_.tail) // ugly I know
-
-    val parsed =
-      (if(fields.length > 2) fields take 2 else fields)
-        .map({ fields => groupFieldsWithHeaders(fields, headers) })
-        .map({ CDR3Sequence.parse(_) })
-
-    assert { allRight(parsed) }
+    assert { allRight(parse.igblastn.TCRB parseCDR3Sequence lines) }
   }
 
-  test("parse V(D)J junction details") {
+  test("parse V Region annotations") {
 
-    val headers =
-      VDJunctionDetails.keys.types map typeLabel asList
-
-    val parsed =
-      regionFrom(vdjSequences, lines)
-        .map(tabSeparatedFields)
-        .map({ fields => groupFieldsWithHeaders(fields, headers) })
-        .map({ VDJunctionDetails.parse(_) })
-
-    assert { allRight(parsed) }
+    assert { allRight(parse.igblastn.TCRB parseVRegionAnnotations lines) }
   }
 
-  test("parse V region annotations") {
+  test("parse hit table") {
 
-    val headers =
-      VRegionAnnotations.keys.types map typeLabel asList
-
-    val parsed =
-      regionFrom(vAnnotation, lines)
-        .map(tabSeparatedFields)
-        .map({ fields => groupFieldsWithHeaders(fields, headers) })
-        .map({ VRegionAnnotations.parse(_) })
-
-    assert { allRight(parsed) }
+    assert { allRight(parse.igblastn.TCRB parseHitTable lines) }
   }
 }
 
