@@ -35,6 +35,85 @@ case object igblastn {
   type Field  = String
   type Header = String
 
+  case object TCRA {
+
+    import ohnosequences.blast.api.igblastn.output.TCRA._
+
+    def parseVJRearrangementSummary(lines: Seq[Line]) =
+      regionFields(vdjAnnotation, lines)
+        .map({ fields => groupFieldsWithHeaders(fields, VJRearrangementSummary.keys.types map typeLabel asList) })
+        .map({ VJRearrangementSummary parse _ })
+
+    def parseVJJunctionDetails(lines: Seq[Line]) =
+      regionFields(vdjSequences, lines)
+        .map({ fields => groupFieldsWithHeaders(fields, VJJunctionDetails.keys.types map typeLabel asList) })
+        .map({ VJJunctionDetails parse _ })
+
+    def parseCDR3Sequence(lines: Seq[Line]) = {
+
+      val fields =
+        regionFields(cdr3Sequences, lines)
+          .map(_.tail) // ugly I know
+
+      (if(fields.length > 2) fields take 2 else fields)
+        .map({ fields => groupFieldsWithHeaders(fields, CDR3Sequence.keys.types map typeLabel asList) })
+        .map({ CDR3Sequence parse _ })
+    }
+
+    def parseVRegionAnnotations(lines: Seq[Line]) =
+      regionFields(vAnnotation, lines)
+        .map({ fields => groupFieldsWithHeaders(fields, VRegionAnnotations.keys.types map typeLabel asList) })
+        .map({ VRegionAnnotations parse _ })
+
+    def parseHitTable(lines: Seq[Line]) =
+      regionFields(hitTable, lines)
+        .map({ fields => groupFieldsWithHeaders(fields, HitTable.keys.types map typeLabel asList) })
+        .map({ HitTable parse _ })
+  }
+
+  case object TCRB {
+
+    import ohnosequences.blast.api.igblastn.output.TCRB._
+
+    def parseVDJRearrangementSummary(lines: Seq[Line]) =
+      regionFields(vdjAnnotation, lines)
+        .map({ fields => groupFieldsWithHeaders(fields, VDJRearrangementSummary.keys.types map typeLabel asList) })
+        .map({ VDJRearrangementSummary parse _ })
+
+    def parseVDJJunctionDetails(lines: Seq[Line]) =
+      regionFields(vdjSequences, lines)
+        .map({ fields => groupFieldsWithHeaders(fields, VDJunctionDetails.keys.types map typeLabel asList) })
+        .map({ VDJunctionDetails parse _ })
+
+    def parseCDR3Sequence(lines: Seq[Line]) = {
+
+      val fields =
+        regionFields(cdr3Sequences, lines)
+          .map(_.tail) // ugly I know
+
+      (if(fields.length > 2) fields take 2 else fields)
+        .map({ fields => groupFieldsWithHeaders(fields, CDR3Sequence.keys.types map typeLabel asList) })
+        .map({ CDR3Sequence parse _ })
+    }
+
+    def parseVRegionAnnotations(lines: Seq[Line]) =
+      regionFields(vAnnotation, lines)
+        .map({ fields => groupFieldsWithHeaders(fields, VRegionAnnotations.keys.types map typeLabel asList) })
+        .map({ VRegionAnnotations parse _ })
+
+    def parseHitTable(lines: Seq[Line]) =
+      regionFields(hitTable, lines)
+        .map({ fields => groupFieldsWithHeaders(fields, HitTable.keys.types map typeLabel asList) })
+        .map({ HitTable parse _ })
+  }
+
+  case class Region(val startsAt: Line => Boolean, val endsAt: Line => Boolean)
+
+  val regionFields: (Region, Seq[Line]) => Seq[Seq[Field]] =
+    (region, lines) =>
+      regionFrom(region, lines)
+        .map(tabSeparatedFields)
+
   val tabSeparatedFields: Line => Seq[Field] =
     _.split("\t").map(_.trim)
 
@@ -53,8 +132,6 @@ case object igblastn {
         .dropWhile  { l => !region.startsAt(l)            }
         .takeWhile  { l => !region.endsAt(l)              }
         .filterNot  { l => isEmptyLine(l) || isComment(l) }
-
-  case class Region(val startsAt: Line => Boolean, val endsAt: Line => Boolean)
 
   val vdjAnnotation: Region =
     Region(
