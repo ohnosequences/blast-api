@@ -38,6 +38,18 @@ case object optionValueToSeq extends DepFn1[AnyDenotation, Seq[String]] {
           else
             Seq()
       }
+
+    implicit def forMaybe[Z, FO <: AnyBlastOption { type Raw = Option[Z] }](implicit
+      option: FO
+    )
+    : AnyApp1At[optionValueToSeq.type, FO := Option[Z]] { type Y = Seq[String] } =
+      App1 {
+        v: FO := Option[Z] =>
+          v.value match {
+            case None     => Seq()
+            case Some(_)  => Seq(option.label) ++ option.valueToString(v.value).filterNot(_.isEmpty)
+          }
+      }
 }
 
 /* This works as a type class, which provides a way of serializing a list of AnyBlastOption's */
@@ -134,7 +146,7 @@ case object num_alignments_J extends BlastOption[Int](_.toString)
 //  -auxiliary_data <String>
 //    File containing the coding frame start positions for sequences in germline
 //    J database
-case object auxiliary_data extends BlastOption[File](_.getCanonicalPath)
+case object auxiliary_data extends BlastOption[Option[File]](_.fold("")(_.getCanonicalPath))
 
 //  -min_D_match <Integer, >=5>
 //    Required minimal number of D gene matches
@@ -144,6 +156,11 @@ case object min_D_match extends BlastOption[Int](n => ( if(n < 5) 5 else n ).toS
 //    Penalty for a nucleotide mismatch in D gene
 //    Default = `-4'
 case object D_penalty extends BlastOption[Int](n => ( if(n > -6 && n < 0) n else -4 ).toString)
+
+// -J_penalty <Integer, (>-4 and <0)>
+//    Penalty for a nucleotide mismatch in J gene
+//    Default = `-3'
+case object J_penalty extends BlastOption[Int](n => ( if(n > -4 && n < 0) n else -3 ).toString)
 
 //  -num_clonotype <Integer, >=0>
 //    Number of top clonotypes to show

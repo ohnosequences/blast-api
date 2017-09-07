@@ -31,6 +31,7 @@ case object igblastn extends AnyBlastCommand {
     reward              :×:
     perc_identity       :×:
     // IgBLAST-specific
+    auxiliary_data      :×:
     num_alignments_V    :×:
     num_alignments_D    :×:
     num_alignments_J    :×:
@@ -38,6 +39,7 @@ case object igblastn extends AnyBlastCommand {
     min_J_length        :×:
     min_D_match         :×:
     D_penalty           :×:
+    J_penalty           :×:
     extend_align5end    :×:
     num_clonotype       :×:
     show_translation    :×:
@@ -68,6 +70,7 @@ case object igblastn extends AnyBlastCommand {
     (penalty.type             := penalty.Raw)             ::
     (reward.type              := reward.Raw)              ::
     (perc_identity.type       := perc_identity.Raw)       ::
+    (auxiliary_data.type      := auxiliary_data.Raw)      ::
     (num_alignments_V.type    := num_alignments_V.Raw)    ::
     (num_alignments_D.type    := num_alignments_D.Raw)    ::
     (num_alignments_J.type    := num_alignments_J.Raw)    ::
@@ -75,6 +78,7 @@ case object igblastn extends AnyBlastCommand {
     (min_J_length.type        := min_J_length.Raw)        ::
     (min_D_match.type         := min_D_match.Raw)         ::
     (D_penalty.type           := D_penalty.Raw)           ::
+    (J_penalty.type           := J_penalty.Raw)           ::
     (extend_align5end.type    := extend_align5end.Raw)    ::
     (num_clonotype.type       := num_clonotype.Raw)       ::
     (show_translation.type    := show_translation.Raw)    ::
@@ -94,6 +98,7 @@ case object igblastn extends AnyBlastCommand {
     penalty(-3)                             ::
     reward(2)                               ::
     perc_identity(0D)                       ::
+    auxiliary_data(None)                    ::
     num_alignments_V(3)                     ::
     num_alignments_D(3)                     ::
     num_alignments_J(3)                     ::
@@ -101,6 +106,7 @@ case object igblastn extends AnyBlastCommand {
     min_J_length(0)                         ::
     min_D_match(5)                          ::
     D_penalty(-4)                           ::
+    J_penalty(-3)                           ::
     extend_align5end(false)                 ::
     num_clonotype(100)                      ::
     show_translation(false)                 ::
