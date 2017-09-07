@@ -145,6 +145,11 @@ case object min_D_match extends BlastOption[Int](n => ( if(n < 5) 5 else n ).toS
 //    Default = `-4'
 case object D_penalty extends BlastOption[Int](n => ( if(n > -6 && n < 0) n else -4 ).toString)
 
+// -J_penalty <Integer, (>-4 and <0)>
+//    Penalty for a nucleotide mismatch in J gene
+//    Default = `-3'
+case object J_penalty extends BlastOption[Int](n => ( if(n > -4 && n < 0) n else -3 ).toString)
+
 //  -num_clonotype <Integer, >=0>
 //    Number of top clonotypes to show
 //    Default = `100'

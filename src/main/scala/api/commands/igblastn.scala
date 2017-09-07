@@ -38,6 +38,7 @@ case object igblastn extends AnyBlastCommand {
     min_J_length        :×:
     min_D_match         :×:
     D_penalty           :×:
+    J_penalty           :×:
     extend_align5end    :×:
     num_clonotype       :×:
     show_translation    :×:
@@ -75,6 +76,7 @@ case object igblastn extends AnyBlastCommand {
     (min_J_length.type        := min_J_length.Raw)        ::
     (min_D_match.type         := min_D_match.Raw)         ::
     (D_penalty.type           := D_penalty.Raw)           ::
+    (J_penalty.type           := J_penalty.Raw)           ::
     (extend_align5end.type    := extend_align5end.Raw)    ::
     (num_clonotype.type       := num_clonotype.Raw)       ::
     (show_translation.type    := show_translation.Raw)    ::
@@ -101,6 +103,7 @@ case object igblastn extends AnyBlastCommand {
     min_J_length(0)                         ::
     min_D_match(5)                          ::
     D_penalty(-4)                           ::
+    J_penalty(-3)                           ::
     extend_align5end(false)                 ::
     num_clonotype(100)                      ::
     show_translation(false)                 ::
