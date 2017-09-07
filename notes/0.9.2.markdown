@@ -1,0 +1,4 @@
+This release fixes a couple of igblastn bugs:
+
+- add missing J_penalty IgBLAST option
+- add auxiliary data as an igblastn option
