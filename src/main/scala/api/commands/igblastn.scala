@@ -31,6 +31,7 @@ case object igblastn extends AnyBlastCommand {
     reward              :×:
     perc_identity       :×:
     // IgBLAST-specific
+    auxiliary_data      :×:
     num_alignments_V    :×:
     num_alignments_D    :×:
     num_alignments_J    :×:
@@ -69,6 +70,7 @@ case object igblastn extends AnyBlastCommand {
     (penalty.type             := penalty.Raw)             ::
     (reward.type              := reward.Raw)              ::
     (perc_identity.type       := perc_identity.Raw)       ::
+    (auxiliary_data.type      := auxiliary_data.Raw)      ::
     (num_alignments_V.type    := num_alignments_V.Raw)    ::
     (num_alignments_D.type    := num_alignments_D.Raw)    ::
     (num_alignments_J.type    := num_alignments_J.Raw)    ::
@@ -96,6 +98,7 @@ case object igblastn extends AnyBlastCommand {
     penalty(-3)                             ::
     reward(2)                               ::
     perc_identity(0D)                       ::
+    auxiliary_data(None)                    ::
     num_alignments_V(3)                     ::
     num_alignments_D(3)                     ::
     num_alignments_J(3)                     ::
