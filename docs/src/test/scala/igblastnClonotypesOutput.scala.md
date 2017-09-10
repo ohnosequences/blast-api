@@ -1,53 +1,31 @@
 
 ```scala
-package ohnosequences.blast.test
+package ohnosequences.blast.api.test
 
-import ohnosequences.blast._, api._, outputFields._
-import ohnosequences.cosas._, types._, klists._, records._
-import java.io._
+import ohnosequences.blast.api.parse.igblastn._, clonotypes._
+import java.io.File
+import java.nio.file._
+import scala.collection.JavaConverters._
 
-class CommandGeneration extends org.scalatest.FunSuite {
+class IgBLASTOutput extends org.scalatest.FunSuite {
 
-  val dbFiles   = Set(new File("/target/buh"), new File("/target/bah"))
-  val queryFile = new File("/target/query")
-  val outFile   = new File("/target/blastout")
+  def outputLines: Iterator[String] =
+    Files.lines(new File("data/in/clonotype.out").toPath).iterator.asScala
 
-  case object outRec extends BlastOutputRecord(qseqid :×: sseqid :×: |[AnyOutputField])
+  def summary: Iterator[Option[ClonotypeSummary]] =
+    ClonotypeSummary parseFromLines outputLines
 
-  val stmt = blastn(
-    outRec,
-    argumentValues =
-      db(dbFiles)      ::
-      query(queryFile) ::
-      out(outFile)     ::
-      *[AnyDenotation],
-    optionValues =
-      blastn.defaults.value
-  )
+  def clonotypes: Iterator[Option[Clonotype]] =
+    Clonotype parseFromLines outputLines
 
-  test("command generation") {
+  test("Clonotypes summary") {
 
-    assert {
-      stmt.toSeq ===
-        Seq("blastn", "-db", "/target/buh /target/bah", "-query", "/target/query", "-out", "/target/blastout") ++
-        blastn.defaults.value.toSeq ++
-        Seq("-outfmt", "10 qseqid sseqid")
-    }
+    summary foreach { opt => assert(opt.isDefined) }
+  }
 
-    val mkdb = makeblastdb(
-      argumentValues =
-        in(new File("refs.fasta"))        ::
-        input_type(DBInputType.fasta)     ::
-        dbtype(BlastDBType.nucl)          ::
-        out(new File("data/out/db/refs")) ::
-        *[AnyDenotation],
-      optionValues =
-        (makeblastdb.defaults update title("refs.fasta")).value
-    )
+  test("Clonotypes detail") {
 
-    import sys.process._
-
-    mkdb.toSeq.!!
+    clonotypes foreach { opt => assert(opt.isDefined) }
   }
 }
 

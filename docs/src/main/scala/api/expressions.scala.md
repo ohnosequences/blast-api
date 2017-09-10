@@ -96,6 +96,7 @@ case class BlastExpression[
 
 
 [test/scala/CommandGeneration.scala]: ../../../test/scala/CommandGeneration.scala.md
+[test/scala/igblastnClonotypesOutput.scala]: ../../../test/scala/igblastnClonotypesOutput.scala.md
 [test/scala/OutputParsing.scala]: ../../../test/scala/OutputParsing.scala.md
 [test/scala/OutputFieldsSpecification.scala]: ../../../test/scala/OutputFieldsSpecification.scala.md
 [test/scala/igblastn.scala]: ../../../test/scala/igblastn.scala.md
