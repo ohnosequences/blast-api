@@ -1,6 +1,6 @@
 package ohnosequences.blast.api.parse
 
-import ohnosequences.blast.api.{ BlastOutputRecord, AnyOutputField, OutputField }
+import ohnosequences.blast.api._, ohnosequences.blast.api.igblastn.output._
 import ohnosequences.blast.api.outputFields._
 import ohnosequences.cosas._, types._, klists._, records._
 
@@ -157,4 +157,127 @@ case object igblastn {
       startsAt  = _ startsWith "# Hit table",
       endsAt    = isEmptyLine
     )
+
+  case object clonotypes {
+
+    // #Clonotype summary.  A particular clonotype includes any V(D)J rearrangements that have the same germline V(D)J gene segments, the same productive/non-productive status and the same CDR3 nucleotide as well as amino sequence (Those having the same CDR3 nucleotide but different amino acid sequence or productive/non-productive status due to frameshift in V or J gene are assigned to a different clonotype.  However, their clonotype identifers share the same prefix, for example, 6a, 6b).  Fields (tab-delimited) are clonotype identifier, representative query sequence name, count, frequency (%), CDR3 nucleotide sequence, CDR3 amino acid sequence, productive status, chain type, V gene, D gene, J gene
+    case class ClonotypeSummary(
+      id          : String,
+      repSeqId    : String,
+      count       : Int,
+      freqPerc    : Double,
+      cdr3Nuc     : String,
+      cdr3aa      : String,
+      productive  : Boolean,
+      chainType   : ChainTypes,
+      Vgene       : Seq[String],
+      Dgene       : Seq[String],
+      Jgene       : Seq[String]
+    )
+
+    case object ClonotypeSummary {
+
+      def toTSVLine(x: ClonotypeSummary): String =
+        Seq(
+          x.id,
+          x.repSeqId,
+          x.count.toString,
+          x.freqPerc.toString,
+          x.cdr3Nuc,
+          x.cdr3aa,
+          x.productive.toString,
+          x.chainType.toString,
+          x.Vgene.mkString(","),
+          x.Dgene.mkString(","),
+          x.Jgene.mkString(",")
+        )
+        .mkString("\t")
+
+      private
+      def ifPresent(s: String): Seq[String] =
+        if(s == "N/A")
+          Seq()
+        else
+          s.split(",").toSeq
+
+      // a lot can fail here, proper error management would be good
+      def fromSeq(fields: Seq[String]): Option[ClonotypeSummary] =
+        if(fields.length == 11)
+          ChainTypes.parse(fields(7)) map { chainType =>
+            ClonotypeSummary(
+              id          = fields(0),
+              repSeqId    = fields(1),
+              count       = fields(2).toInt,
+              freqPerc    = fields(3).toDouble,
+              cdr3Nuc     = fields(4),
+              cdr3aa      = fields(5),
+              productive  = fields(6) == "Yes",
+              chainType   = chainType,
+              Vgene       = ifPresent(fields(8)),
+              Dgene       = ifPresent(fields(9)),
+              Jgene       = ifPresent(fields(10))
+            )
+          }
+        else
+          None
+
+      private
+      def myLines(lines: Iterator[String]): Iterator[String] =
+        lines
+          .dropWhile({ line => ! line.startsWith("#Clonotype summary") })
+          .drop(1)
+          .dropWhile({ _.isEmpty })
+          .takeWhile({line => (!line.startsWith("#All query sequences grouped by clonotype")) && line.nonEmpty })
+
+      def parseFromLines(lines: Iterator[String]): Iterator[Option[ClonotypeSummary]] =
+        myLines(lines)
+          .map(_.split('\t').map(_.trim).toSeq)
+          .map(fromSeq _)
+
+      def toTSV(cs: Iterator[ClonotypeSummary]): Iterator[String] =
+        cs map toTSVLine
+    }
+
+    // #All query sequences grouped by clonotypes.  Fields (tab-delimited) are clonotype identifier, count, frequency (%), min similarity to top germline V gene (%), max similarity to top germline V gene (%), average similarity to top germline V gene (%), query sequence name (multiple names are separated by a comma if applicable)
+    case class Clonotype(
+      id              : String,
+      count           : Int,
+      freqPerc        : Double,
+      minSimPercVgene : Double,
+      maxSimPercVgene : Double,
+      avgSimPercVgene : Double,
+      querySeqs       : Seq[String]
+    )
+
+    case object Clonotype {
+
+      def fromSeq(fields: Seq[String]): Option[Clonotype] =
+        if(fields.length == 7)
+          Some(
+            Clonotype(
+              id              = fields(0),
+              count           = fields(1).toInt,
+              freqPerc        = fields(2).toDouble,
+              minSimPercVgene = fields(3).toDouble,
+              maxSimPercVgene = fields(4).toDouble,
+              avgSimPercVgene = fields(5).toDouble,
+              querySeqs       = fields(6).split(",").toSeq
+            )
+          )
+        else
+          None
+
+      private
+      def myLines(lines: Iterator[String]): Iterator[String] =
+        lines
+          .dropWhile({ line => ! line.startsWith("#All query sequences grouped by clonotypes") })
+          .dropWhile(_.startsWith("#All query sequences grouped by clonotypes"))
+          .filter(_.nonEmpty)
+
+      def parseFromLines(lines: Iterator[String]): Iterator[Option[Clonotype]] =
+        myLines(lines)
+          .map(_.split('\t').map(_.trim).toSeq)
+          .map(fromSeq _)
+    }
+  }
 }
