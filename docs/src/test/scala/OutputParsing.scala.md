@@ -59,6 +59,7 @@ class ParseBlastOutput extends org.scalatest.FunSuite {
 
 
 [test/scala/CommandGeneration.scala]: CommandGeneration.scala.md
+[test/scala/igblastnClonotypesOutput.scala]: igblastnClonotypesOutput.scala.md
 [test/scala/OutputParsing.scala]: OutputParsing.scala.md
 [test/scala/OutputFieldsSpecification.scala]: OutputFieldsSpecification.scala.md
 [test/scala/igblastn.scala]: igblastn.scala.md

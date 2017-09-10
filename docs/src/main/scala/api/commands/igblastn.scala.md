@@ -31,7 +31,6 @@ case object igblastn extends AnyBlastCommand {
     ungapped            :×:
     penalty             :×:
     reward              :×:
-    perc_identity       :×:
     // IgBLAST-specific
     auxiliary_data      :×:
     num_alignments_V    :×:
@@ -71,7 +70,6 @@ case object igblastn extends AnyBlastCommand {
     (ungapped.type            := ungapped.Raw)            ::
     (penalty.type             := penalty.Raw)             ::
     (reward.type              := reward.Raw)              ::
-    (perc_identity.type       := perc_identity.Raw)       ::
     (auxiliary_data.type      := auxiliary_data.Raw)      ::
     (num_alignments_V.type    := num_alignments_V.Raw)    ::
     (num_alignments_D.type    := num_alignments_D.Raw)    ::
@@ -102,7 +100,6 @@ Default values match those documented in [the official BLAST docs](http://www.nc
     ungapped(false)                         ::
     penalty(-3)                             ::
     reward(2)                               ::
-    perc_identity(0D)                       ::
     auxiliary_data(None)                    ::
     num_alignments_V(3)                     ::
     num_alignments_D(3)                     ::
@@ -264,21 +261,20 @@ TRAV14/DV4*02	TRAJ31*01	VA	No	In-frame	Yes	+
       case object VD extends ChainTypes
       case object VG extends ChainTypes
       case object VH extends ChainTypes
+
+      def parse(raw: String): Option[ChainTypes] =
+        raw match {
+          case "VA" => Some(ChainTypes.VA)
+          case "VB" => Some(ChainTypes.VB)
+          case "VD" => Some(ChainTypes.VD)
+          case "VG" => Some(ChainTypes.VG)
+          case "VH" => Some(ChainTypes.VH)
+          case _    => None
+        }
     }
 
     implicit val chainTypeParser: DenotationParser[chainType.type,ChainTypes,String] =
-      new DenotationParser(chainType, chainType.label)(
-        {
-          str: String => str match {
-            case "VA" => Some(ChainTypes.VA)
-            case "VB" => Some(ChainTypes.VB)
-            case "VD" => Some(ChainTypes.VD)
-            case "VG" => Some(ChainTypes.VG)
-            case "VH" => Some(ChainTypes.VH)
-            case _    => None
-          }
-        }
-      )
+      new DenotationParser(chainType, chainType.label)(ChainTypes.parse)
 
     case object chainType   extends OutputField[ChainTypes]
 
@@ -536,6 +532,7 @@ Record values separated by **tabs**. Note that the column order is critical here
 
 
 [test/scala/CommandGeneration.scala]: ../../../../test/scala/CommandGeneration.scala.md
+[test/scala/igblastnClonotypesOutput.scala]: ../../../../test/scala/igblastnClonotypesOutput.scala.md
 [test/scala/OutputParsing.scala]: ../../../../test/scala/OutputParsing.scala.md
 [test/scala/OutputFieldsSpecification.scala]: ../../../../test/scala/OutputFieldsSpecification.scala.md
 [test/scala/igblastn.scala]: ../../../../test/scala/igblastn.scala.md
