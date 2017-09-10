@@ -1,0 +1,3 @@
+This release fixes an igblastn bug #57 which was making all igblastn expressions execution impossible.
+
+It also adds support for igblastn clonotypes output parsing.
