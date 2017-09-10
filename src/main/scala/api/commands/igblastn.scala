@@ -247,21 +247,20 @@ case object igblastn extends AnyBlastCommand {
       case object VD extends ChainTypes
       case object VG extends ChainTypes
       case object VH extends ChainTypes
+
+      def parse(raw: String): Option[ChainTypes] =
+        raw match {
+          case "VA" => Some(ChainTypes.VA)
+          case "VB" => Some(ChainTypes.VB)
+          case "VD" => Some(ChainTypes.VD)
+          case "VG" => Some(ChainTypes.VG)
+          case "VH" => Some(ChainTypes.VH)
+          case _    => None
+        }
     }
 
     implicit val chainTypeParser: DenotationParser[chainType.type,ChainTypes,String] =
-      new DenotationParser(chainType, chainType.label)(
-        {
-          str: String => str match {
-            case "VA" => Some(ChainTypes.VA)
-            case "VB" => Some(ChainTypes.VB)
-            case "VD" => Some(ChainTypes.VD)
-            case "VG" => Some(ChainTypes.VG)
-            case "VH" => Some(ChainTypes.VH)
-            case _    => None
-          }
-        }
-      )
+      new DenotationParser(chainType, chainType.label)(ChainTypes.parse)
 
     case object chainType   extends OutputField[ChainTypes]
 
