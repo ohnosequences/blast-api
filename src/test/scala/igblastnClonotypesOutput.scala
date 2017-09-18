@@ -1,6 +1,6 @@
 package ohnosequences.blast.api.test
 
-import ohnosequences.blast.api.parse.igblastn._, clonotypes._
+import ohnosequences.blast.api.parse.igblastn._
 import java.io.File
 import java.nio.file._
 import scala.collection.JavaConverters._
