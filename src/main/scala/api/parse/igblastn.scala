@@ -110,7 +110,7 @@ case object igblastn {
         .map(tabSeparatedFields)
 
   val tabSeparatedFields: Line => Seq[Field] =
-    _.split("\t").map(_.trim)
+    _.split('\t').map(_.trim)
 
   val groupFieldsWithHeaders: (Seq[Field], Seq[Header]) => Map[Header, Field] =
     (fields, headers) => (headers zip fields) toMap
@@ -209,49 +209,45 @@ case object igblastn {
         toSeq(cs).mkString("\t")
 
 
-      private
-      def ifPresent(s: String): Seq[String] =
-        if(s == "N/A")
-          Seq()
-        else
-          s.split(",").toSeq
-
       // a lot can fail here, proper error management would be good
-      def fromSeq(fields: Seq[String]): Option[ClonotypeSummary] =
-        if(fields.length == 11)
-          ChainTypes.parse(fields(7)) map { chainType =>
-            ClonotypeSummary(
-              id          = fields(0),
-              repSeqId    = fields(1),
-              count       = fields(2).toInt,
-              freqPerc    = fields(3).toDouble,
-              cdr3Nuc     = fields(4),
-              cdr3aa      = fields(5),
-              productive  = fields(6) == "Yes",
-              chainType   = chainType,
-              Vgene       = ifPresent(fields(8)),
-              Dgene       = ifPresent(fields(9)),
-              Jgene       = ifPresent(fields(10))
-            )
-          }
-        else
-          None
+      def fromSeq(fields: Seq[String]): Option[ClonotypeSummary] = {
+        def ifPresent(s: String): Seq[String] = {
+          if(s == "N/A") Seq()
+          else s.split(',').map(_.trim).toSeq
+        }
 
-      private
-      def myLines(lines: Iterator[String]): Iterator[String] =
-        lines
-          .dropWhile({ line => ! line.startsWith("#Clonotype summary") })
+        if(fields.length != 11) None
+        else ChainTypes.parse(fields(7)).map { chainType =>
+          ClonotypeSummary(
+            id         = fields(0),
+            repSeqId   = fields(1),
+            count      = fields(2).toInt,
+            freqPerc   = fields(3).toDouble,
+            cdr3Nuc    = fields(4),
+            cdr3aa     = fields(5),
+            productive = fields(6) == "Yes",
+            chainType  = chainType,
+            Vgene      = ifPresent(fields(8)),
+            Dgene      = ifPresent(fields(9)),
+            Jgene      = ifPresent(fields(10))
+          )
+        }
+      }
+
+      def parseFromLines(lines: Iterator[String]): Iterator[Option[ClonotypeSummary]] = {
+        val relevantLines: Iterator[String] = lines
+          .dropWhile { line => !line.startsWith("#Clonotype summary") }
           .drop(1)
-          .dropWhile({ _.isEmpty })
-          .takeWhile({line => (!line.startsWith("#All query sequences grouped by clonotype")) && line.nonEmpty })
+          .dropWhile { _.isEmpty }
+          .takeWhile { line => line.nonEmpty && !line.startsWith("#All query sequences grouped by clonotype") }
 
-      def parseFromLines(lines: Iterator[String]): Iterator[Option[ClonotypeSummary]] =
-        myLines(lines)
+        relevantLines
           .map(_.split('\t').map(_.trim).toSeq)
-          .map(fromSeq _)
+          .map(fromSeq)
+      }
 
       def toTSV(cs: Iterator[ClonotypeSummary]): Iterator[String] =
-        cs map toTSVLine
+        cs.map(toTSVLine)
     }
 
     // #All query sequences grouped by clonotypes.  Fields (tab-delimited) are clonotype identifier, count, frequency (%), min similarity to top germline V gene (%), max similarity to top germline V gene (%), average similarity to top germline V gene (%), query sequence name (multiple names are separated by a comma if applicable)
@@ -267,33 +263,31 @@ case object igblastn {
 
     case object Clonotype {
 
-      def fromSeq(fields: Seq[String]): Option[Clonotype] =
-        if(fields.length == 7)
-          Some(
-            Clonotype(
-              id              = fields(0),
-              count           = fields(1).toInt,
-              freqPerc        = fields(2).toDouble,
-              minSimPercVgene = fields(3).toDouble,
-              maxSimPercVgene = fields(4).toDouble,
-              avgSimPercVgene = fields(5).toDouble,
-              querySeqs       = fields(6).split(",").toSeq
-            )
+      def fromSeq(fields: Seq[String]): Option[Clonotype] = {
+        if(fields.length != 7) None
+        else Some(
+          Clonotype(
+            id              = fields(0),
+            count           = fields(1).toInt,
+            freqPerc        = fields(2).toDouble,
+            minSimPercVgene = fields(3).toDouble,
+            maxSimPercVgene = fields(4).toDouble,
+            avgSimPercVgene = fields(5).toDouble,
+            querySeqs       = fields(6).split(',').toSeq
           )
-        else
-          None
+        )
+      }
 
-      private
-      def myLines(lines: Iterator[String]): Iterator[String] =
-        lines
-          .dropWhile({ line => ! line.startsWith("#All query sequences grouped by clonotypes") })
-          .dropWhile(_.startsWith("#All query sequences grouped by clonotypes"))
-          .filter(_.nonEmpty)
+      def parseFromLines(lines: Iterator[String]): Iterator[Option[Clonotype]] = {
+        val relevantLines: Iterator[String] = lines
+          .dropWhile { line => ! line.startsWith("#All query sequences grouped by clonotypes") }
+          .dropWhile { _.startsWith("#All query sequences grouped by clonotypes") }
+          .filter { _.nonEmpty }
 
-      def parseFromLines(lines: Iterator[String]): Iterator[Option[Clonotype]] =
-        myLines(lines)
+        relevantLines
           .map(_.split('\t').map(_.trim).toSeq)
-          .map(fromSeq _)
+          .map(fromSeq)
+      }
     }
   }
 }
