@@ -274,7 +274,7 @@ case object igblastn {
       maxSimPercVgene : Double,
       avgSimPercVgene : Double,
       querySeqs       : Seq[String],
-      readCount       : Int
+      readsCount      : Int
     )
 
     case object Clonotype {
@@ -287,7 +287,7 @@ case object igblastn {
 
           // In CCGAG:TGTGCTATGTTGAGGT:3:0.047884850241877504 first number
           // is the number of reads    ^
-          val readCount: Int =
+          val readsCount: Int =
             querySeqs.map { _.split(':')(2).toInt }.sum
 
           Clonotype(
@@ -298,7 +298,7 @@ case object igblastn {
             maxSimPercVgene = fields(4).toDouble,
             avgSimPercVgene = fields(5).toDouble,
             querySeqs       = querySeqs,
-            readCount       = readCount
+            readsCount      = readsCount
           )
         }
       }
