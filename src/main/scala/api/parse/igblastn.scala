@@ -158,6 +158,39 @@ case object igblastn {
       endsAt    = isEmptyLine
     )
 
+  /** Summary total numbers from the IgBLAST output
+    *
+    * @param queries          Total queries
+    * @param identifiableCDR3 Total identifiable CDR3
+    * @param uniqueClonotypes Total unique clonotypes
+    */
+  case class Totals(
+    queries: Int,
+    identifiableCDR3: Int,
+    uniqueClonotypes: Int
+  )
+
+  case object Totals {
+
+    def parseFromLines(lines: Iterator[String]): Option[Totals] = {
+      def getIntVal(line: String): Int = line.split('=').map(_.trim).last.toInt
+
+      val fields: Seq[Int] = lines
+        .dropWhile { line => line.isEmpty || !line.startsWith("Total") }
+        .take(3).toSeq
+        .map(getIntVal)
+
+      if (fields.length != 3) None
+      else Some {
+        Totals(
+          fields(0),
+          fields(1),
+          fields(2)
+        )
+      }
+    }
+  }
+
   case object clonotypes {
 
     /** === Clonotype summary ===
