@@ -246,9 +246,23 @@ case object igblastn {
           .map(_.split('\t').map(_.trim).toSeq)
           .map(fromSeq)
       }
+    }
 
-      def toTSV(cs: Iterator[ClonotypeSummary]): Iterator[String] =
-        cs.map(_.toTSV)
+    implicit class ClonotypeSummariesOps(val summaries: TraversableOnce[ClonotypeSummary]) extends AnyVal {
+
+      def toTSV: Iterator[String] = summaries.toIterator.map(_.toTSV)
+
+      /** Filters only productive [[ClonotypeSummary]]s and normalizes their frequency percentage
+        * @return a `Seq` of productive clonotype summaries, because it requires two traversals
+        */
+      def onlyProductive: Seq[ClonotypeSummary] = {
+        val productive = summaries.filter(_.productive).toSeq
+        val productiveCount: Double = productive.map(_.count).sum
+
+        productive.map { cs =>
+          cs.copy(freqPerc = cs.count * 100 / productiveCount)
+        }
+      }
     }
 
     // #All query sequences grouped by clonotypes.  Fields (tab-delimited) are clonotype identifier, count, frequency (%), min similarity to top germline V gene (%), max similarity to top germline V gene (%), average similarity to top germline V gene (%), query sequence name (multiple names are separated by a comma if applicable)
