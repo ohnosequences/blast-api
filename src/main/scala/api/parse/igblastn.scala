@@ -173,7 +173,26 @@ case object igblastn {
       Vgene       : Seq[String],
       Dgene       : Seq[String],
       Jgene       : Seq[String]
-    )
+    ) {
+
+      /** Transforms [[ClonotypeSummary]] to a sequence of strings prepared for further DSV formatting. Fields strings are _not escaped_. */
+      def toSeq: Seq[String] = Seq(
+        id,
+        repSeqId,
+        count.toString,
+        freqPerc.toString,
+        cdr3Nuc,
+        cdr3aa,
+        productive.toString,
+        chainType.toString,
+        Vgene.mkString(","),
+        Dgene.mkString(","),
+        Jgene.mkString(",")
+      )
+
+      /** Formats [[ClonotypeSummary]] as a TSV (tab separated) string */
+      def toTSV: String = toSeq.mkString("\t")
+    }
 
     case object ClonotypeSummary {
 
@@ -190,24 +209,6 @@ case object igblastn {
         "D",
         "J"
       )
-
-      def toSeq(cs: ClonotypeSummary): Seq[String] = Seq(
-        cs.id,
-        cs.repSeqId,
-        cs.count.toString,
-        cs.freqPerc.toString,
-        cs.cdr3Nuc,
-        cs.cdr3aa,
-        cs.productive.toString,
-        cs.chainType.toString,
-        cs.Vgene.mkString(","),
-        cs.Dgene.mkString(","),
-        cs.Jgene.mkString(",")
-      )
-
-      def toTSVLine(cs: ClonotypeSummary): String =
-        toSeq(cs).mkString("\t")
-
 
       // a lot can fail here, proper error management would be good
       def fromSeq(fields: Seq[String]): Option[ClonotypeSummary] = {
@@ -247,7 +248,7 @@ case object igblastn {
       }
 
       def toTSV(cs: Iterator[ClonotypeSummary]): Iterator[String] =
-        cs.map(toTSVLine)
+        cs.map(_.toTSV)
     }
 
     // #All query sequences grouped by clonotypes.  Fields (tab-delimited) are clonotype identifier, count, frequency (%), min similarity to top germline V gene (%), max similarity to top germline V gene (%), average similarity to top germline V gene (%), query sequence name (multiple names are separated by a comma if applicable)
