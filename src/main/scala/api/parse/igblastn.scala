@@ -177,21 +177,37 @@ case object igblastn {
 
     case object ClonotypeSummary {
 
-      def toTSVLine(x: ClonotypeSummary): String =
-        Seq(
-          x.id,
-          x.repSeqId,
-          x.count.toString,
-          x.freqPerc.toString,
-          x.cdr3Nuc,
-          x.cdr3aa,
-          x.productive.toString,
-          x.chainType.toString,
-          x.Vgene.mkString(","),
-          x.Dgene.mkString(","),
-          x.Jgene.mkString(",")
-        )
-        .mkString("\t")
+      val DSVHeader: Seq[Field] = Seq(
+        "IgBLAST clonotype identifier",
+        "Representative query sequence name",
+        "Count",
+        "Frequency (%)",
+        "CDR3 nucleotide sequence",
+        "CDR3 amino acid sequence",
+        "Productive status",
+        "Chain type",
+        "V",
+        "D",
+        "J"
+      )
+
+      def toSeq(cs: ClonotypeSummary): Seq[String] = Seq(
+        cs.id,
+        cs.repSeqId,
+        cs.count.toString,
+        cs.freqPerc.toString,
+        cs.cdr3Nuc,
+        cs.cdr3aa,
+        cs.productive.toString,
+        cs.chainType.toString,
+        cs.Vgene.mkString(","),
+        cs.Dgene.mkString(","),
+        cs.Jgene.mkString(",")
+      )
+
+      def toTSVLine(cs: ClonotypeSummary): String =
+        toSeq(cs).mkString("\t")
+
 
       private
       def ifPresent(s: String): Seq[String] =
