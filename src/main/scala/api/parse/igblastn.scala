@@ -160,7 +160,22 @@ case object igblastn {
 
   case object clonotypes {
 
-    // #Clonotype summary.  A particular clonotype includes any V(D)J rearrangements that have the same germline V(D)J gene segments, the same productive/non-productive status and the same CDR3 nucleotide as well as amino sequence (Those having the same CDR3 nucleotide but different amino acid sequence or productive/non-productive status due to frameshift in V or J gene are assigned to a different clonotype.  However, their clonotype identifers share the same prefix, for example, 6a, 6b).  Fields (tab-delimited) are clonotype identifier, representative query sequence name, count, frequency (%), CDR3 nucleotide sequence, CDR3 amino acid sequence, productive status, chain type, V gene, D gene, J gene
+    /** === Clonotype summary ===
+      *
+      * A particular clonotype includes any V(D)J rearrangements that have the same germline V(D)J gene segments, the same productive/non-productive status and the same CDR3 nucleotide as well as amino sequence (Those having the same CDR3 nucleotide but different amino acid sequence or productive/non-productive status due to frameshift in V or J gene are assigned to a different clonotype.  However, their clonotype identifers share the same prefix, for example, 6a, 6b).
+      *
+      * @param id         clonotype identifier
+      * @param repSeqId   representative query sequence name
+      * @param count      count
+      * @param freqPerc   frequency (%)
+      * @param cdr3Nuc    CDR3 nucleotide sequence
+      * @param cdr3aa     CDR3 amino acid sequence
+      * @param productive productive status
+      * @param chainType  chain type
+      * @param Vgene      V gene
+      * @param Dgene      D gene
+      * @param Jgene      J gene
+      */
     case class ClonotypeSummary(
       id          : String,
       repSeqId    : String,
@@ -196,6 +211,7 @@ case object igblastn {
 
     case object ClonotypeSummary {
 
+      /** [[ClonotypeSummary]] fields names that can be used as a DSV header */
       val DSVHeader: Seq[Field] = Seq(
         "IgBLAST clonotype identifier",
         "Representative query sequence name",
@@ -210,7 +226,7 @@ case object igblastn {
         "J"
       )
 
-      // a lot can fail here, proper error management would be good
+      // FIXME: a lot can fail here, proper error management would be good
       def fromSeq(fields: Seq[String]): Option[ClonotypeSummary] = {
         def ifPresent(s: String): Seq[String] = {
           if(s == "N/A") Seq()
@@ -265,7 +281,17 @@ case object igblastn {
       }
     }
 
-    // #All query sequences grouped by clonotypes.  Fields (tab-delimited) are clonotype identifier, count, frequency (%), min similarity to top germline V gene (%), max similarity to top germline V gene (%), average similarity to top germline V gene (%), query sequence name (multiple names are separated by a comma if applicable)
+    /** All query sequences grouped by clonotypes.
+      *
+      * @param id              clonotype identifier
+      * @param count           query sequence count
+      * @param freqPerc        frequency (%)
+      * @param minSimPercVgene min similarity to top germline V gene (%)
+      * @param maxSimPercVgene max similarity to top germline V gene (%)
+      * @param avgSimPercVgene average similarity to top germline V gene (%)
+      * @param querySeqs       query sequence names
+      * @param readsCount      summary reads count calculated from the query sequences' names
+      */
     case class Clonotype(
       id              : String,
       count           : Int,
