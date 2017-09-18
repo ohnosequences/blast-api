@@ -168,7 +168,16 @@ case object igblastn {
     queries: Int,
     identifiableCDR3: Int,
     uniqueClonotypes: Int
-  )
+  ) {
+
+    def toSeq: Seq[Int] = Seq(
+      queries,
+      identifiableCDR3,
+      uniqueClonotypes
+    )
+
+    def toTSV: String = toSeq.mkString("\t")
+  }
 
   case object Totals {
 
