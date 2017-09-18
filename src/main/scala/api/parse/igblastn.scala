@@ -258,14 +258,23 @@ case object igblastn {
       minSimPercVgene : Double,
       maxSimPercVgene : Double,
       avgSimPercVgene : Double,
-      querySeqs       : Seq[String]
+      querySeqs       : Seq[String],
+      readCount       : Int
     )
 
     case object Clonotype {
 
       def fromSeq(fields: Seq[String]): Option[Clonotype] = {
         if(fields.length != 7) None
-        else Some(
+        else Some {
+          val querySeqs: Seq[String] =
+            fields(6).split(',').map(_.trim).toSeq
+
+          // In CCGAG:TGTGCTATGTTGAGGT:3:0.047884850241877504 first number
+          // is the number of reads    ^
+          val readCount: Int =
+            querySeqs.map { _.split(':')(2).toInt }.sum
+
           Clonotype(
             id              = fields(0),
             count           = fields(1).toInt,
@@ -273,9 +282,10 @@ case object igblastn {
             minSimPercVgene = fields(3).toDouble,
             maxSimPercVgene = fields(4).toDouble,
             avgSimPercVgene = fields(5).toDouble,
-            querySeqs       = fields(6).split(',').toSeq
+            querySeqs       = querySeqs,
+            readCount       = readCount
           )
-        )
+        }
       }
 
       def parseFromLines(lines: Iterator[String]): Iterator[Option[Clonotype]] = {
