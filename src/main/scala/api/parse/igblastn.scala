@@ -168,9 +168,27 @@ case object igblastn {
     queries: Int,
     identifiableCDR3: Int,
     uniqueClonotypes: Int
-  )
+  ) {
+
+    def toSeq: Seq[Int] = Seq(
+      queries,
+      identifiableCDR3,
+      uniqueClonotypes
+    )
+
+    def toTSV: String = toSeq.mkString("\t")
+  }
 
   case object Totals {
+
+    /** [[Totals]] fields names that can be used as a DSV header */
+    val DSVHeader: Seq[Field] = Seq(
+      "Total queries",
+      "Total identifiable CDR3",
+      "Total unique clonotypes"
+    )
+
+    val TSVHeader: String = DSVHeader.mkString("\t")
 
     def parseFromLines(lines: Iterator[String]): Option[Totals] = {
       def getIntVal(line: String): Int = line.split('=').map(_.trim).last.toInt
@@ -256,6 +274,8 @@ case object igblastn {
       "D",
       "J"
     )
+
+    val TSVHeader: String = DSVHeader.mkString("\t")
 
     // FIXME: a lot can fail here, proper error management would be good
     def fromSeq(fields: Seq[String]): Option[ClonotypeSummary] = {
