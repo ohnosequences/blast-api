@@ -9,12 +9,7 @@
 
 This library provides a typesafe API for the [BLAST](https://en.wikipedia.org/wiki/BLAST) bioinformatics tool based on the [ohnosequences/cosas](https://github.com/ohnosequences/cosas) library.
 
-For documentation see the code annotations in [docs/](docs/src/main/scala/api).
-
-
-#### Current state
-
-At the moment the only command that is more or less full-featured is [blastn](docs/src/main/scala/api/commands/blastn.scala.md). The others are in progress.
+For documentation see the code annotations in [docs/](docs/src/main/scala/api) and the [API reference](http://ohnosequences.com/blast-api/docs/api/latest).
 
 
 #### SBT dependency
