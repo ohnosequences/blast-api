@@ -12,44 +12,41 @@ sealed trait AnyBlastOption extends AnyType {
   val valueToString: Raw => Seq[String]
 }
 
-abstract class BlastOption[V](val v: V => String) extends AnyBlastOption {
+abstract class BlastOption[R](val toStr: R => String) extends AnyBlastOption {
 
-  type Raw = V
+  type Raw = R
 
-  val valueToString = { x: V => Seq(v(x)) }
+  val valueToString = { x: R => Seq(toStr(x)) }
 }
 
 case object optionValueToSeq extends DepFn1[AnyDenotation, Seq[String]] {
 
-  implicit def default[FO <: AnyBlastOption, V <: FO#Raw](implicit
-    option: FO with AnyBlastOption { type Raw = FO#Raw }
-  )
-  : AnyApp1At[optionValueToSeq.type, FO := V] { type Y = Seq[String] }=
-    App1 { v: FO := V => Seq(option.label) ++ option.valueToString(v.value).filterNot(_.isEmpty) }
+  implicit def default[V, BO <: AnyBlastOption { type Raw = V }]: AnyApp1At[
+    optionValueToSeq.type,
+    BO := V
+  ] { type Y = Seq[String] } = App1 { v =>
+    Seq(v.tpe.label) ++ v.tpe.valueToString(v.value).filterNot(_.isEmpty)
+  }
 
-    implicit def forFlags[FO <: AnyBlastOption { type Raw = Boolean }](implicit
-      option: FO
-    )
-    : AnyApp1At[optionValueToSeq.type, FO := Boolean] { type Y = Seq[String] }=
-      App1 {
-        v: FO := Boolean =>
-          if(v.value)
-            Seq(option.label) ++ option.valueToString(v.value).filterNot(_.isEmpty)
-          else
-            Seq()
-      }
+  implicit def forFlags[BO <: AnyBlastOption { type Raw = Boolean }]: AnyApp1At[
+    optionValueToSeq.type,
+    BO := Boolean
+  ] { type Y = Seq[String] } = App1 { v =>
+    if(v.value)
+      Seq(v.tpe.label) ++ v.tpe.valueToString(v.value).filterNot(_.isEmpty)
+    else
+      Seq()
+  }
 
-    implicit def forMaybe[Z, FO <: AnyBlastOption { type Raw = Option[Z] }](implicit
-      option: FO
-    )
-    : AnyApp1At[optionValueToSeq.type, FO := Option[Z]] { type Y = Seq[String] } =
-      App1 {
-        v: FO := Option[Z] =>
-          v.value match {
-            case None     => Seq()
-            case Some(_)  => Seq(option.label) ++ option.valueToString(v.value).filterNot(_.isEmpty)
-          }
-      }
+  implicit def forMaybe[Z, BO <: AnyBlastOption { type Raw = Option[Z] }]: AnyApp1At[
+    optionValueToSeq.type,
+    BO := Option[Z]
+  ] { type Y = Seq[String] } = App1 { v =>
+    v.value match {
+      case Some(_) => Seq(v.tpe.label) ++ v.tpe.valueToString(v.value).filterNot(_.isEmpty)
+      case None    => Seq()
+    }
+  }
 }
 
 /* This works as a type class, which provides a way of serializing a list of AnyBlastOption's */
