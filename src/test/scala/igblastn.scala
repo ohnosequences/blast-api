@@ -1,8 +1,7 @@
 package ohnosequences.blast.test
 
-import ohnosequences.blast.api.igblastn.output
 import ohnosequences.blast.api._
-import ohnosequences.cosas._, types._, klists._, records._
+import ohnosequences.cosas._, types._, klists._
 
 class IgBLASTCommands extends org.scalatest.FunSuite {
 
@@ -50,8 +49,6 @@ class IgBLASTCommands extends org.scalatest.FunSuite {
 
 class TCRAOutput extends org.scalatest.FunSuite {
 
-  import output._, TCRA._
-
   lazy val lines =
     io.Source.fromFile("data/igblastn/tcra.out").getLines.toList
 
@@ -81,8 +78,6 @@ class TCRAOutput extends org.scalatest.FunSuite {
 /////////////////////////////////////////////////////////////////////////////////////////
 
 class TCRBOutput extends org.scalatest.FunSuite {
-
-  import output._, TCRB._
 
   lazy val lines =
     io.Source.fromFile("data/igblastn/tcrb.out").getLines.toList

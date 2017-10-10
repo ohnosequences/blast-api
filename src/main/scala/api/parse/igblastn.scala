@@ -2,7 +2,7 @@ package ohnosequences.blast.api.parse
 
 import ohnosequences.blast.api._, ohnosequences.blast.api.igblastn.output._
 import ohnosequences.blast.api.outputFields._
-import ohnosequences.cosas._, types._, klists._, records._
+import ohnosequences.cosas._, types._
 
 /*
   # IgBLAST output structure
@@ -45,10 +45,8 @@ case object igblastn {
         .map({ VJJunctionDetails parse _ })
 
     def parseCDR3Sequence(lines: Seq[Line]) = {
-
-      val fields =
-        regionFields(cdr3Sequences, lines)
-          .map(_.tail) // ugly I know
+      // Dropping the first field which is just "CDR3"
+      val fields = regionFields(cdr3Sequences, lines).map(_.drop(1))
 
       (if(fields.length > 2) fields take 2 else fields)
         .map({ fields => groupFieldsWithHeaders(fields, CDR3Sequence.keys.types map typeLabel asList) })
@@ -81,10 +79,8 @@ case object igblastn {
         .map({ VDJunctionDetails parse _ })
 
     def parseCDR3Sequence(lines: Seq[Line]) = {
-
-      val fields =
-        regionFields(cdr3Sequences, lines)
-          .map(_.tail) // ugly I know
+      // Dropping the first field which is just "CDR3"
+      val fields = regionFields(cdr3Sequences, lines).map(_.drop(1))
 
       (if(fields.length > 2) fields take 2 else fields)
         .map({ fields => groupFieldsWithHeaders(fields, CDR3Sequence.keys.types map typeLabel asList) })

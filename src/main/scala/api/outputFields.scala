@@ -1,6 +1,6 @@
 package ohnosequences.blast.api
 
-import ohnosequences.cosas._, types._, records._, fns._, klists._, typeUnions._
+import ohnosequences.cosas._, types._
 
 /*
   ### BLAST output formats and fields

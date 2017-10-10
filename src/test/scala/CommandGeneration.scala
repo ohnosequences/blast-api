@@ -1,7 +1,7 @@
 package ohnosequences.blast.test
 
 import ohnosequences.blast._, api._, outputFields._
-import ohnosequences.cosas._, types._, klists._, records._
+import ohnosequences.cosas._, types._, klists._
 import java.io._
 
 class CommandGeneration extends org.scalatest.FunSuite {
