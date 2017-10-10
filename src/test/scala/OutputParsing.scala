@@ -1,7 +1,7 @@
 package ohnosequences.blast.test
 
 import ohnosequences.blast.api._, outputFields._
-import ohnosequences.cosas._, types._, klists._, records._
+import ohnosequences.cosas._, types._
 import java.io._
 
 case object csvUtils {

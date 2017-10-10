@@ -2,7 +2,7 @@ package ohnosequences.blast.api.parse
 
 import ohnosequences.blast.api._, ohnosequences.blast.api.igblastn.output._
 import ohnosequences.blast.api.outputFields._
-import ohnosequences.cosas._, types._, klists._, records._
+import ohnosequences.cosas._, types._
 
 /*
   # IgBLAST output structure
