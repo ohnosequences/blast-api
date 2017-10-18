@@ -7,7 +7,7 @@ crossScalaVersions := Seq("2.11.11", "2.12.3")
 scalaVersion := crossScalaVersions.value.max
 
 libraryDependencies ++= Seq(
-  "ohnosequences"        %% "cosas"     % "0.9.0",
+  "ohnosequences"        %% "cosas"     % "0.10.0",
   "org.scalatest"        %% "scalatest" % "3.0.4" % Test,
   "com.github.tototoshi" %% "scala-csv" % "1.3.5" % Test
 )
