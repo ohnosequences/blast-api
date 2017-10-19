@@ -6,7 +6,7 @@ scala:
   - 2.12.3
 jdk: oraclejdk8
 script:
-  - sbt ++$TRAVIS_SCALA_VERSION test
+  - sbt ++$TRAVIS_SCALA_VERSION test:compile
 notifications:
   email: false
   webhooks:
